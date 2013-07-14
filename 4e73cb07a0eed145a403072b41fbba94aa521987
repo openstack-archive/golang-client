@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Approved+1: slamet hendry <slamet.hendry@gmail.com>
+Code-Review+2: slamet hendry <slamet.hendry@gmail.com>
+Submitted-by: Jenkins
+Submitted-at: Sun, 14 Jul 2013 14:20:44 +0000
+Reviewed-on: https://review.openstack.org/36981
+Project: stackforge/golang-client
+Branch: refs/heads/master
