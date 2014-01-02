@@ -1,0 +1,8 @@
+Verified+2: Jenkins
+Approved+1: Matt Farina <matt@mattfarina.com>
+Code-Review+2: Matt Farina <matt@mattfarina.com>
+Submitted-by: Jenkins
+Submitted-at: Thu, 02 Jan 2014 19:33:50 +0000
+Reviewed-on: https://review.openstack.org/64713
+Project: stackforge/golang-client
+Branch: refs/heads/master
