@@ -3,7 +3,7 @@ package misc_test
 import (
 	"bytes"
 	"errors"
-	misc "golang-client/misc"
+	"git.openstack.org/stackforge/golang-client.git/misc"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"

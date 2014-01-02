@@ -1,7 +1,7 @@
 package objectstorage
 
 import (
-	"golang-client/misc"
+	"git.openstack.org/stackforge/golang-client.git/misc"
 	"io/ioutil"
 	"net/http"
 	"net/url"

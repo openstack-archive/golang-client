@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"golang-client/misc"
+	"git.openstack.org/stackforge/golang-client.git/misc"
 	"io/ioutil"
 	"strings"
 	"time"

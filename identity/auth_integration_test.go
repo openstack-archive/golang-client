@@ -5,8 +5,8 @@
 package identity_test
 
 import (
-	"golang-client/identity"
-	"golang-client/identity/identitytest"
+	"git.openstack.org/stackforge/golang-client.git/identity"
+	"git.openstack.org/stackforge/golang-client.git/identity/identitytest"
 	"testing"
 	"time"
 )

@@ -3,9 +3,9 @@ package objectstorage_test
 import (
 	"bytes"
 	"encoding/json"
-	"golang-client/identity"
-	"golang-client/identity/identitytest"
-	"golang-client/objectstorage"
+	"git.openstack.org/stackforge/golang-client.git/identity"
+	"git.openstack.org/stackforge/golang-client.git/identity/identitytest"
+	"git.openstack.org/stackforge/golang-client.git/objectstorage"
 	"io/ioutil"
 	"testing"
 )

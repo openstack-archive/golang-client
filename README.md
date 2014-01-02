@@ -14,7 +14,8 @@ Code maturity is considered experimental.
 
 Installation
 ------------
-Use `go get`.  Or alternatively, download or clone the repository.
+Use `go get git.openstack.org/stackforge/golang-client.git`.  Or alternatively,
+download or clone the repository.
 
 The lib was developed and tested on go 1.0.3 and 1.1.1, but maintenance has moved
 to 1.1.1 only.  No external dependencies, so far.
