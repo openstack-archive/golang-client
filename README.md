@@ -32,10 +32,19 @@ convention: `go doc`.  Here is a short example code snippet:
     httpHdr, err := objectstorage.GetAccountMeta(objectstorageHost,
         auth.Access.Token.Id)
 
+Examples
+--------
+The examples directory contains examples for using the SDK using
+real world working code. Each example starts with a two digit number followed
+by a name (e.g., `00-authentication.go`). If you have a `config.json` file in the
+examples directory following the format of `config.json.dist` the example can be
+executed using `go run [example name] setup.go`. Or, all the examples can be
+executed running the script `run-all.sh` from the examples directory.
+
 Testing
 -------
 There are two types of test files.  The `*_test.go` are standard
-golang unit test files.  The `*_integration_test.go` are 
+golang unit test files.  The `*_integration_test.go` are
 test files that require an active OpenStack service account before
 you can properly test.  If you do not have an account,
 then running `go test` on the `*_integration_test.go` files will fail.
