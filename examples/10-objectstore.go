@@ -18,8 +18,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"git.openstack.org/stackforge/golang-client.git/identity"
-	"git.openstack.org/stackforge/golang-client.git/objectstorage"
+	"git.openstack.org/stackforge/golang-client.git/identity/v2"
+	"git.openstack.org/stackforge/golang-client.git/objectstorage/v1"
 	"io/ioutil"
 	"time"
 )
