@@ -16,6 +16,7 @@ type testconfig struct {
 	Password    string
 	ProjectID   string
 	ProjectName string
+	Container   string
 }
 
 // getConfig provides access to credentials in other tests and examples.
