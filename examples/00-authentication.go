@@ -31,9 +31,11 @@ func main() {
 		config.Password)
 	if err != nil {
 		fmt.Println("There was an error authenticating:", err)
+		return
 	}
 	if !auth.Access.Token.Expires.After(time.Now()) {
 		fmt.Println("There was an error. The auth token has an invalid expiration.")
+		return
 	}
 
 	// Authenticate with a username, password, tenant name.
@@ -43,9 +45,11 @@ func main() {
 		config.ProjectName)
 	if err != nil {
 		fmt.Println("There was an error authenticating:", err)
+		return
 	}
 	if !auth.Access.Token.Expires.After(time.Now()) {
 		fmt.Println("There was an error. The auth token has an invalid expiration.")
+		return
 	}
 
 	// Authenticate with a username, password, tenant id.
@@ -55,8 +59,10 @@ func main() {
 		config.ProjectID)
 	if err != nil {
 		fmt.Println("There was an error authenticating:", err)
+		return
 	}
 	if !auth.Access.Token.Expires.After(time.Now()) {
 		fmt.Println("There was an error. The auth token has an invalid expiration.")
+		return
 	}
 }
