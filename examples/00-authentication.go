@@ -16,7 +16,7 @@ package main
 
 import (
 	"fmt"
-	"git.openstack.org/stackforge/golang-client.git/identity"
+	"git.openstack.org/stackforge/golang-client.git/identity/v2"
 	"time"
 )
 
