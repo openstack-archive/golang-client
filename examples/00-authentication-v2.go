@@ -26,7 +26,7 @@ func main() {
 
 	// Authenticate with just a username and password. The returned token is
 	// unscoped to a tenant.
-	auth, err := identity.AuthUserName(config.Host,
+	auth, err := identity.AuthUserName(config.EndpointV2,
 		config.Username,
 		config.Password)
 	if err != nil {
@@ -39,7 +39,7 @@ func main() {
 	}
 
 	// Authenticate with a username, password, tenant name.
-	auth, err = identity.AuthUserNameTenantName(config.Host,
+	auth, err = identity.AuthUserNameTenantName(config.EndpointV2,
 		config.Username,
 		config.Password,
 		config.ProjectName)
@@ -53,7 +53,7 @@ func main() {
 	}
 
 	// Authenticate with a username, password, tenant id.
-	auth, err = identity.AuthUserNameTenantId(config.Host,
+	auth, err = identity.AuthUserNameTenantId(config.EndpointV2,
 		config.Username,
 		config.Password,
 		config.ProjectID)

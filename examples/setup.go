@@ -25,7 +25,8 @@ import (
 // testconfig contains the user information needed by the acceptance and
 // integration tests.
 type testconfig struct {
-	Host        string
+	EndpointV3  string
+	EndpointV2  string
 	Username    string
 	Password    string
 	ProjectID   string

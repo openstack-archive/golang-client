@@ -1,5 +1,6 @@
 {
-	"Host": "https://.../tokens",
+	"EndpointV3": "https://.../v3/",
+  "EndpointV2": "https://.../v2.0/tokens",
 	"Username": "",
 	"Password": "",
 	"ProjectID": "",
