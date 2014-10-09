@@ -1,1 +1,3 @@
 *.json
+*.sublime-project
+*.sublime-workspace
