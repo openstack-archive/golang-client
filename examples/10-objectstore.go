@@ -29,7 +29,7 @@ func main() {
 
 	// Before working with object storage we need to authenticate with a project
 	// that has active object storage.
-	auth, err := identity.AuthUserNameTenantName(config.Host,
+	auth, err := identity.AuthUserNameTenantName(config.EndpointV2,
 		config.Username,
 		config.Password,
 		config.ProjectName)
