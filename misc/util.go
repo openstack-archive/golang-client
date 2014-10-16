@@ -16,10 +16,38 @@ package misc
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
 )
+
+var zeroByte = &([]byte{}) //pointer to empty []byte
+
+type Session struct {
+	Token      string
+	TenantName string
+	TenantId   string
+}
+
+//GetJson sends an Http Request with using the "GET" method and with
+//an "Accept" header set to "application/json" and the authenication token
+//set to the specified token value. The request is made by the
+//specified client. The val interface should be a pointer to the
+//structure that the json response should be decoded into.
+func GetJson(url string, token string, client http.Client, val interface{}) (err error) {
+	req, err := createJsonGetRequest(url, token)
+	if err != nil {
+		return err
+	}
+
+	err = executeRequestCheckStatusDecodeJsonResponse(client, req, val)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 //CallAPI sends an HTTP request using "method" to "url".
 //For uploading / sending file, caller needs to set the "content".  Otherwise,
@@ -107,4 +135,33 @@ func CheckHttpResponseStatusCode(resp *http.Response) error {
 		return errors.New("Error: response == 503 service unavailable")
 	}
 	return errors.New("Error: unexpected response status code")
+}
+
+func createJsonGetRequest(url string, token string) (req *http.Request, err error) {
+	req, err = http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-Auth-Token", token)
+
+	return req, nil
+}
+
+func executeRequestCheckStatusDecodeJsonResponse(client http.Client, req *http.Request, val interface{}) (err error) {
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	err = CheckHttpResponseStatusCode(resp)
+	if err != nil {
+		return err
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&val)
+	defer resp.Body.Close()
+
+	return err
 }
