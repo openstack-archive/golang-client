@@ -18,12 +18,37 @@ import (
 	"bytes"
 	"errors"
 	"git.openstack.org/stackforge/golang-client.git/misc"
+	"git.openstack.org/stackforge/golang-client.git/testUtil"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strconv"
 	"testing"
 )
+
+var token = "2350971-5716-8165"
+
+func TestDelete(t *testing.T) {
+	var apiServer = testUtil.CreateDeleteTestRequestServer(t, token, "/other")
+	defer apiServer.Close()
+
+	err := misc.Delete(apiServer.URL+"/other", token, *http.DefaultClient)
+	testUtil.IsNil(t, err)
+}
+
+func TestPostJsonWithValidResponse(t *testing.T) {
+
+	var apiServer = testUtil.CreatePostJsonTestRequestServer(t, token, `{"id":"id1","name":"Chris"}`, "", `{"id":"id1","name":"name"}`)
+	defer apiServer.Close()
+	actual := TestStruct{}
+	ti := TestStruct{Id: "id1", Name: "name"}
+
+	err := misc.PostJSON(apiServer.URL, token, *http.DefaultClient, ti, &actual)
+	testUtil.IsNil(t, err)
+	expected := TestStruct{Id: "id1", Name: "Chris"}
+
+	testUtil.Equals(t, expected, actual)
+}
 
 func TestCallAPI(t *testing.T) {
 	tokn := "eaaafd18-0fed-4b3a-81b4-663c99ec1cbb"
@@ -107,4 +132,9 @@ func TestCallAPIPutContent(t *testing.T) {
 	if _, err = misc.CallAPI("PUT", apiServer.URL, &fContent, "X-Auth-Token", tokn); err != nil {
 		t.Error(err)
 	}
+}
+
+type TestStruct struct {
+	Id   string `json:"id"`
+	Name string `json:"name"`
 }
