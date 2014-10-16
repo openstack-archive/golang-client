@@ -16,10 +16,105 @@ package misc
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 )
+
+var zeroByte = new([]byte) //pointer to empty []byte
+
+// PostJson sends an Http Request with using the "POST" method and with
+// a "Content-Type" header with application/json and X-Auth-Token" header
+// set to the specified token value. The inputValue is encoded to json
+// and sent in the body of the request. The response json body is
+// decoded into the outputValue. If the response does sends an invalid
+// or error status code then an error will be returned. If the Content-Type
+// value of the response is not "application/json" an error is returned.
+func PostJSON(url string, token string, client http.Client, inputValue interface{}, outputValue interface{}) (err error) {
+	body, err := json.Marshal(inputValue)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-Auth-Token", token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	if resp.StatusCode != 201 && resp.StatusCode != 202 {
+		err = errors.New("Error: status code != 201 or 202, actual status code '" + resp.Status + "'")
+		return
+	}
+
+	contentTypeValue := resp.Header.Get("Content-Type")
+	if contentTypeValue != "application/json" {
+		err = errors.New("Error: Expected a json payload but instead recieved '" + contentTypeValue + "'")
+		return
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&outputValue)
+	defer resp.Body.Close()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// Delete sends an Http Request with using the "DELETE" method and with
+// an "X-Auth-Token" header set to the specified token value. The request
+// is made by the specified client.
+func Delete(url string, token string, client http.Client) (err error) {
+	req, err := http.NewRequest("DELETE", url, nil)
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("X-Auth-Token", token)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	// Expecting a successful delete
+	if !(resp.StatusCode == 200 || resp.StatusCode == 202 || resp.StatusCode == 204) {
+		err = errors.New(fmt.Sprintf("Unexpected server response status code on Delete '%s'", resp.StatusCode))
+		return
+	}
+
+	return nil
+}
+
+//GetJson sends an Http Request with using the "GET" method and with
+//an "Accept" header set to "application/json" and the authenication token
+//set to the specified token value. The request is made by the
+//specified client. The val interface should be a pointer to the
+//structure that the json response should be decoded into.
+func GetJSON(url string, token string, client http.Client, val interface{}) (err error) {
+	req, err := createJsonGetRequest(url, token)
+	if err != nil {
+		return err
+	}
+
+	err = executeRequestCheckStatusDecodeJsonResponse(client, req, val)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 //CallAPI sends an HTTP request using "method" to "url".
 //For uploading / sending file, caller needs to set the "content".  Otherwise,
@@ -107,4 +202,33 @@ func CheckHttpResponseStatusCode(resp *http.Response) error {
 		return errors.New("Error: response == 503 service unavailable")
 	}
 	return errors.New("Error: unexpected response status code")
+}
+
+func createJsonGetRequest(url string, token string) (req *http.Request, err error) {
+	req, err = http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Accept", "application/json")
+	req.Header.Set("X-Auth-Token", token)
+
+	return req, nil
+}
+
+func executeRequestCheckStatusDecodeJsonResponse(client http.Client, req *http.Request, val interface{}) (err error) {
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+
+	err = CheckHttpResponseStatusCode(resp)
+	if err != nil {
+		return err
+	}
+
+	err = json.NewDecoder(resp.Body).Decode(&val)
+	defer resp.Body.Close()
+
+	return err
 }
