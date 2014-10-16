@@ -26,6 +26,7 @@ import (
 // integration tests.
 type testconfig struct {
 	Host        string
+	ImageHost   string
 	Username    string
 	Password    string
 	ProjectID   string
