@@ -31,6 +31,7 @@ type testconfig struct {
 	ProjectID   string
 	ProjectName string
 	Container   string
+	ImageRegion string
 }
 
 // getConfig provides access to credentials in other tests and examples.
