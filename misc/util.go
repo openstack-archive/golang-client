@@ -18,8 +18,38 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"io/ioutil"
+	"log"
 	"net/http"
+	"net/http/httputil"
+	"os"
 )
+
+var zeroByte = &([]byte{}) //pointer to empty []byte
+
+func CallDeleteAPI(url string, h ...string) (err error) {
+	resp, err := CallAPI("DELETE", url, zeroByte, h...)
+
+	return CheckHttpResponseStatusCode(resp)
+}
+
+func CallGetAPI(url string, h ...string) (header http.Header, responseByteArr []byte, err error) {
+	resp, err := CallAPI("GET", url, zeroByte, h...)
+	header = resp.Header
+
+	if err = CheckHttpResponseStatusCode(resp); err != nil {
+		return header, nil, err
+	}
+
+	responseByteArr, err = ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	if err != nil {
+		return header, responseByteArr, err
+	}
+
+	return header, responseByteArr, nil
+}
 
 //CallAPI sends an HTTP request using "method" to "url".
 //For uploading / sending file, caller needs to set the "content".  Otherwise,
@@ -45,21 +75,46 @@ func CallAPI(method, url string, content *[]byte, h ...string) (*http.Response, 
 	//comment it out, if you are confident in your test suites.
 	var req *http.Request
 	var err error
-	req, err = http.NewRequest(method, url, nil)
+	contentLength := int64(len(*content))
+	if contentLength > 0 {
+		req, err = http.NewRequest(method, url, bytes.NewReader(*content))
+		//req.Body = *(new(io.ReadCloser)) //these 3 lines do not work but I am
+		//req.Body.Read(content)           //keeping them here in case I wonder why
+		//req.Body.Close()                 //I did not implement it this way :)
+	} else {
+		req, err = http.NewRequest(method, url, nil)
+	}
+	req.ContentLength = contentLength
+
 	if err != nil {
 		return nil, err
 	}
 	for i := 0; i < len(h)-1; i = i + 2 {
 		req.Header.Set(h[i], h[i+1])
 	}
-	req.ContentLength = int64(len(*content))
-	if req.ContentLength > 0 {
-		req.Body = readCloser{bytes.NewReader(*content)}
-		//req.Body = *(new(io.ReadCloser)) //these 3 lines do not work but I am
-		//req.Body.Read(content)           //keeping them here in case I wonder why
-		//req.Body.Close()                 //I did not implement it this way :)
+
+	LogDebug("CallAPI-----------------------------------httputil.DumpRequestOut-------BEGIN")
+	dumpReqByte, err := httputil.DumpRequestOut(req, true)
+	if err != nil {
+		log.Printf(err.Error())
 	}
-	return (new(http.Client)).Do(req)
+	LogDebug(string(dumpReqByte))
+	LogDebug("CallAPI-----------------------------------httputil.DumpRequestOut-------END")
+
+	resp, err := (new(http.Client)).Do(req)
+	if err != nil {
+		log.Printf(err.Error())
+	}
+
+	LogDebug("CallAPI-----------------------------------httputil.DumpResponse-------BEGIN")
+	dumpRspByte, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		log.Printf(err.Error())
+	}
+	LogDebug(string(dumpRspByte))
+	LogDebug("CallAPI-----------------------------------httputil.DumpResponse-------END")
+
+	return resp, err
 }
 
 type readCloser struct {
@@ -107,4 +162,10 @@ func CheckHttpResponseStatusCode(resp *http.Response) error {
 		return errors.New("Error: response == 503 service unavailable")
 	}
 	return errors.New("Error: unexpected response status code")
+}
+
+func LogDebug(s string) {
+	if len(os.Getenv("LOG_DEBUG")) != 0 {
+		log.Printf(s)
+	}
 }

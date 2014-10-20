@@ -153,3 +153,18 @@ func auth(url, jsonStr *string) (Auth, error) {
 	}
 	return auth, nil
 }
+
+func (auth Auth) EndpointList() (list map[string]string) {
+
+	list = make(map[string]string)
+
+	for _, v := range auth.Access.ServiceCatalog {
+		for _, endPoint := range v.Endpoints {
+			if endPoint.Region == "region-b.geo-1" {
+				list[v.Type] = endPoint.PublicURL
+			}
+		}
+	}
+
+	return list
+}
