@@ -1,0 +1,11 @@
+hosts:
+  test-server-1:
+    ip: 10.0.0.91
+    ismaster: true
+
+imageRef: 261844b3-479c-5446-a2c4-1ea95d53b668
+sshkey: Go1_KeyPair
+flavorref: 101
+maxcount: 1
+mincount: 1
+userdata: 
