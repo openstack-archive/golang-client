@@ -224,18 +224,18 @@ func TestPutObject(t *testing.T) {
 }
 
 func TestCopyObject(t *testing.T) {
-	destUrl := "/destContainer/dest/Obj"
+	destURL := "/destContainer/dest/Obj"
 	var apiServer = httptest.NewServer(http.HandlerFunc(
 		func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == "COPY" && r.Header.Get("Destination") == destUrl {
+			if r.Method == "COPY" && r.Header.Get("Destination") == destURL {
 				w.WriteHeader(200)
 				return
 			}
 			t.Error(errors.New(
-				"Failed: r.Method == COPY && r.Header.Get(Destination) == destUrl"))
+				"Failed: r.Method == COPY && r.Header.Get(Destination) == destURL"))
 		}))
 	defer apiServer.Close()
-	if err := objectstorage.CopyObject(apiServer.URL+objPrefix, destUrl,
+	if err := objectstorage.CopyObject(apiServer.URL+objPrefix, destURL,
 		tokn); err != nil {
 		t.Error(err)
 	}

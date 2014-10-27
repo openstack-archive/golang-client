@@ -135,7 +135,7 @@ func auth(url, jsonStr *string) (Auth, error) {
 	if err != nil {
 		return Auth{}, err
 	}
-	if err = misc.CheckHttpResponseStatusCode(resp); err != nil {
+	if err = misc.CheckHTTPResponseStatusCode(resp); err != nil {
 		return Auth{}, err
 	}
 	var contentType string = strings.ToLower(resp.Header.Get("Content-Type"))

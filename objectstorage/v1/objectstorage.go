@@ -69,8 +69,8 @@ func PutContainer(url, token string, s ...string) error {
 //obtained token. "Limit", "marker", "prefix", "path", "delim" corresponds
 //to the API's "limit", "marker", "prefix", "path", and "delimiter".
 func ListObjects(limit int64,
-	marker, prefix, path, delim, conUrl, token string) ([]byte, error) {
-	var query string = "?format=json"
+	marker, prefix, path, delim, conURL, token string) ([]byte, error) {
+	var query = "?format=json"
 	if limit > 0 {
 		query += "&limit=" + strconv.FormatInt(limit, 10)
 	}
@@ -86,12 +86,12 @@ func ListObjects(limit int64,
 	if delim != "" {
 		query += "&delimiter=" + url.QueryEscape(delim)
 	}
-	resp, err := misc.CallAPI("GET", conUrl+query, zeroByte,
+	resp, err := misc.CallAPI("GET", conURL+query, zeroByte,
 		"X-Auth-Token", token)
 	if err != nil {
 		return nil, err
 	}
-	if err = misc.CheckHttpResponseStatusCode(resp); err != nil {
+	if err = misc.CheckHTTPResponseStatusCode(resp); err != nil {
 		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
@@ -112,20 +112,20 @@ func PutObject(fContent *[]byte, url, token string, s ...string) (err error) {
 	if err != nil {
 		return err
 	}
-	return misc.CheckHttpResponseStatusCode(resp)
+	return misc.CheckHTTPResponseStatusCode(resp)
 }
 
 //CopyObject calls the OpenStack copy object API using previously obtained
 //token.  Note from API doc: "The destination container must exist before
 //attempting the copy."
-func CopyObject(srcUrl, destUrl, token string) (err error) {
-	resp, err := misc.CallAPI("COPY", srcUrl, zeroByte,
+func CopyObject(srcURL, destURL, token string) (err error) {
+	resp, err := misc.CallAPI("COPY", srcURL, zeroByte,
 		"X-Auth-Token", token,
-		"Destination", destUrl)
+		"Destination", destURL)
 	if err != nil {
 		return err
 	}
-	return misc.CheckHttpResponseStatusCode(resp)
+	return misc.CheckHTTPResponseStatusCode(resp)
 }
 
 //DeleteObject calls the OpenStack delete object API using
@@ -141,7 +141,7 @@ func DeleteObject(url, token string) (err error) {
 	if err != nil {
 		return err
 	}
-	return misc.CheckHttpResponseStatusCode(resp)
+	return misc.CheckHTTPResponseStatusCode(resp)
 }
 
 //SetObjectMeta calls the OpenStack API to create/update meta data for
@@ -153,7 +153,7 @@ func SetObjectMeta(url string, token string, s ...string) (err error) {
 	if err != nil {
 		return err
 	}
-	return misc.CheckHttpResponseStatusCode(resp)
+	return misc.CheckHTTPResponseStatusCode(resp)
 }
 
 //GetObjectMeta calls the OpenStack retrieve object metadata API using
@@ -163,7 +163,7 @@ func GetObjectMeta(url, token string) (http.Header, error) {
 	if err != nil {
 		return nil, err
 	}
-	return resp.Header, misc.CheckHttpResponseStatusCode(resp)
+	return resp.Header, misc.CheckHTTPResponseStatusCode(resp)
 }
 
 //GetObject calls the OpenStack retrieve object API using previously
@@ -178,7 +178,7 @@ func GetObject(url, token string) (http.Header, []byte, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = misc.CheckHttpResponseStatusCode(resp); err != nil {
+	if err = misc.CheckHTTPResponseStatusCode(resp); err != nil {
 		return nil, nil, err
 	}
 	var body []byte
