@@ -16,6 +16,7 @@
 package testUtil
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -99,6 +100,22 @@ func CreateGetJSONTestRequestServer(t *testing.T, expectedAuthTokenValue string,
 
 			t.Error(errors.New("Failed: r.Method == GET"))
 		}))
+}
+
+// CreateGetJSONTestRequestServerWithMockObject a http.Server that can be used to test PostJson requests. Specify the token,
+// response object which will be marshaled to a json payload and the expected ending url.
+func CreateGetJSONTestRequestServerWithMockObject(t *testing.T, token string, mockResponseObject interface{}, urlEndsWith string) *httptest.Server {
+	mockResponse, err := json.Marshal(mockResponseObject)
+	if err != nil {
+		t.Error("Test failed to marshal mockResponseObject:", err)
+	}
+	anon := func(req *http.Request) {
+		reqURL := req.URL.String()
+		if !strings.HasSuffix(reqURL, urlEndsWith) {
+			t.Error(errors.New("Incorrect url created, expected:" + urlEndsWith + " at the end, actual url:" + reqURL))
+		}
+	}
+	return CreateGetJSONTestRequestServer(t, token, string(mockResponse), anon)
 }
 
 // CreatePostJSONTestRequestServer creates a http.Server that can be used to test PostJson requests. Specify the token,
