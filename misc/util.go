@@ -52,7 +52,7 @@ func PostJSON(url string, token string, client http.Client, inputValue interface
 		return err
 	}
 
-	if resp.StatusCode != 201 && resp.StatusCode != 202 {
+	if resp.StatusCode != 201 && resp.StatusCode != 202 && resp.StatusCode != 200 {
 		err = errors.New("Error: status code != 201 or 202, actual status code '" + resp.Status + "'")
 		return
 	}
