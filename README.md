@@ -52,9 +52,9 @@ Contributing
 ------------
 The code repository borrows OpenStack StackForge infrastructure.
 Please use the [recommended workflow]
-(https://wiki.openstack.org/wiki/GerritWorkflow).  If you are not a member yet,
+(http://docs.openstack.org/infra/manual/developers.html#development-workflow).  If you are not a member yet,
 please consider joining as an [OpenStack contributor]
-(https://wiki.openstack.org/wiki/HowToContribute).  If you have questions or
+(http://docs.openstack.org/infra/manual/developers.html).  If you have questions or
 comments, you can email the maintainer(s).
 
 Coding Style

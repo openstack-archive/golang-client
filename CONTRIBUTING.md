@@ -15,7 +15,7 @@ When filing an issue please fill in as many details as possible.
 ## Contributing
 
 Before contributing to the SDK you will need to get setup to [contribute within
-the OpenStack community](https://wiki.openstack.org/wiki/How_To_Contribute).
+the OpenStack community](http://docs.openstack.org/infra/manual/developers.html).
 
 Since this SDK is designed to work against an OpenStack setup you'll need an
 existing OpenStack cloud or [DevStack](http://devstack.org) for integration
