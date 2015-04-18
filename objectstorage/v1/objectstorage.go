@@ -110,7 +110,7 @@ func ListObjects(limit int64,
 func PutObject(fContent *[]byte, url, token string, s ...string) (err error) {
 	var headers http.Header = http.Header{}
 	headers.Set("X-Auth-Token", token)
-	resp, err := session.Put(url, nil, &headers, fContent)
+	resp, err := openstack.Put(url, nil, &headers, fContent)
 	if err != nil {
 		return err
 	}

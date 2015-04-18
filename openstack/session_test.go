@@ -14,7 +14,7 @@
 // limitations under the License.
 
 
-package session_test
+package openstack_test
 
 import (
     "encoding/json"
@@ -41,7 +41,7 @@ func TestSessionGet(t *testing.T) {
     expected := TestStruct{ID: "id1", Name: "Chris"}
     actual := TestStruct{}
 
-    s, _ := session.NewSession(nil, "", nil)
+    s, _ := openstack.NewSession(nil, "", nil)
     var headers http.Header = http.Header{}
     headers.Set("X-Auth-Token", tokn)
     headers.Set("Accept", "application/json")

@@ -152,7 +152,7 @@ func (imageService Service) queryImages(includeDetails bool, imagesResponseConta
 	var headers http.Header = http.Header{}
 	headers.Set("X-Auth-Token", imageService.TokenID)
 	headers.Set("Accept", "application/json")
-	resp, err := session.Get(reqURL.String(), nil, &headers)
+	resp, err := openstack.Get(reqURL.String(), nil, &headers)
 	if err != nil {
 		return err
 	}

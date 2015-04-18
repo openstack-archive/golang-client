@@ -128,7 +128,7 @@ func AuthTenantNameTokenId(url, tenantName, tokenId string) (Auth, error) {
 func auth(url, jsonStr *string) (Auth, error) {
 	var s []byte = []byte(*jsonStr)
 	path := fmt.Sprintf(`%s/tokens`, *url)
-	resp, err := session.Post(path, nil, nil, &s)
+	resp, err := openstack.Post(path, nil, nil, &s)
 	if err != nil {
 		return Auth{}, err
 	}
