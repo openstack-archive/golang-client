@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"git.openstack.org/stackforge/golang-client.git/openstack"
 	"git.openstack.org/stackforge/golang-client.git/util"
 )
 
@@ -107,13 +108,13 @@ func ListObjects(limit int64,
 //obtained token.
 //url can be regular storage or CDN-enabled storage URL.
 func PutObject(fContent *[]byte, url, token string, s ...string) (err error) {
-	s = append(s, "X-Auth-Token")
-	s = append(s, token)
-	resp, err := util.CallAPI("PUT", url, fContent, s...)
+	var headers http.Header = http.Header{}
+	headers.Set("X-Auth-Token", token)
+	resp, err := session.Put(url, nil, &headers, fContent)
 	if err != nil {
 		return err
 	}
-	return util.CheckHTTPResponseStatusCode(resp)
+	return util.CheckHTTPResponseStatusCode(resp.Resp)
 }
 
 //CopyObject calls the OpenStack copy object API using previously obtained

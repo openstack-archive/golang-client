@@ -20,11 +20,10 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"strings"
 	"time"
 
-	"git.openstack.org/stackforge/golang-client.git/util"
+	"git.openstack.org/stackforge/golang-client.git/openstack"
 )
 
 type Auth struct {
@@ -128,28 +127,18 @@ func AuthTenantNameTokenId(url, tenantName, tokenId string) (Auth, error) {
 
 func auth(url, jsonStr *string) (Auth, error) {
 	var s []byte = []byte(*jsonStr)
-	resp, err := util.CallAPI("POST", *url, &s,
-		"Accept-Encoding", "gzip,deflate",
-		"Accept", "application/json",
-		"Content-Type", "application/json",
-		"Content-Length", string(len(*jsonStr)))
+	path := fmt.Sprintf(`%s/tokens`, *url)
+	resp, err := session.Post(path, nil, nil, &s)
 	if err != nil {
 		return Auth{}, err
 	}
-	if err = util.CheckHTTPResponseStatusCode(resp); err != nil {
-		return Auth{}, err
-	}
-	var contentType string = strings.ToLower(resp.Header.Get("Content-Type"))
+
+	var contentType string = strings.ToLower(resp.Resp.Header.Get("Content-Type"))
 	if strings.Contains(contentType, "json") != true {
 		return Auth{}, errors.New("err: header Content-Type is not JSON")
 	}
-	body, err := ioutil.ReadAll(resp.Body)
-	defer resp.Body.Close()
-	if err != nil {
-		return Auth{}, err
-	}
 	var auth = Auth{}
-	if err = json.Unmarshal(body, &auth); err != nil {
+	if err = json.Unmarshal(resp.Body, &auth); err != nil {
 		return Auth{}, err
 	}
 	return auth, nil

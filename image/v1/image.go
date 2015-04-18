@@ -23,10 +23,12 @@ In addition more complex filtering and sort queries can by using the ImageQueryP
 package image
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 
+	"git.openstack.org/stackforge/golang-client.git/openstack"
 	"git.openstack.org/stackforge/golang-client.git/util"
 )
 
@@ -147,11 +149,22 @@ func (imageService Service) queryImages(includeDetails bool, imagesResponseConta
 		return err
 	}
 
-	err = util.GetJSON(reqURL.String(), imageService.TokenID, imageService.Client, &imagesResponseContainer)
+	var headers http.Header = http.Header{}
+	headers.Set("X-Auth-Token", imageService.TokenID)
+	headers.Set("Accept", "application/json")
+	resp, err := session.Get(reqURL.String(), nil, &headers)
 	if err != nil {
 		return err
 	}
 
+	err = util.CheckHTTPResponseStatusCode(resp.Resp)
+	if err != nil {
+		return err
+	}
+
+	if err = json.Unmarshal(resp.Body, &imagesResponseContainer); err != nil {
+		return err
+	}
 	return nil
 }
 

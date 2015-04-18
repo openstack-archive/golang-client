@@ -44,10 +44,8 @@ func main() {
 	for _, svc := range auth.Access.ServiceCatalog {
 		if svc.Type == "image" {
 			for _, ep := range svc.Endpoints {
-				if ep.VersionId == "1.0" && ep.Region == config.ImageRegion {
-					url = ep.PublicURL
-					break
-				}
+				url = ep.PublicURL + "/v1"
+				break
 			}
 		}
 	}

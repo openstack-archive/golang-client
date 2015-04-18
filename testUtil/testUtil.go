@@ -57,6 +57,30 @@ func IsNil(tb testing.TB, act interface{}) {
 	}
 }
 
+// CreateGetJSONTestServer creates a httptest.Server that can be used to test
+// JSON Get requests. Takes a token, JSON payload, and a verification function
+// to do additional validation
+func CreateGetJsonTestServer(
+    t *testing.T,
+    expectedAuthToken string,
+    jsonResponsePayload string,
+    verifyRequest func(*http.Request)) *httptest.Server {
+    return httptest.NewServer(http.HandlerFunc(
+        func(w http.ResponseWriter, r *http.Request) {
+            headerValuesEqual(t, r, "X-Auth-Token", expectedAuthToken)
+            headerValuesEqual(t, r, "Accept", "application/json")
+            // verifyRequest(r)
+            if r.Method == "GET" {
+                w.Header().Set("Content-Type", "application/json")
+                w.Write([]byte(jsonResponsePayload))
+                w.WriteHeader(http.StatusOK)
+                return
+            }
+
+            t.Error(errors.New("Failed: r.Method == GET"))
+        }))
+}
+
 // CreateGetJSONTestRequestServer creates a httptest.Server that can be used to test GetJson requests. Just specify the token,
 // json payload that is to be read by the response, and a verification func that can be used
 // to do additional validation of the request that is built
