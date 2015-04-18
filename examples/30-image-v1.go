@@ -16,10 +16,11 @@ package main
 
 import (
 	"fmt"
-	"git.openstack.org/stackforge/golang-client.git/identity/v2"
-	"git.openstack.org/stackforge/golang-client.git/image/v1"
 	"net/http"
 	"time"
+
+	"git.openstack.org/stackforge/golang-client.git/image/v1"
+	"git.openstack.org/stackforge/golang-client.git/openstack"
 )
 
 // Image examples.
@@ -27,34 +28,39 @@ func main() {
 	config := getConfig()
 
 	// Authenticate with a username, password, tenant id.
-	auth, err := identity.AuthUserNameTenantName(config.Host,
-		config.Username,
-		config.Password,
-		config.ProjectName)
+	creds := openstack.AuthOpts{
+		AuthUrl:  config.Host,
+		Project:  config.ProjectName,
+		Username: config.Username,
+		Password: config.Password,
+	}
+	auth, err := openstack.DoAuthRequest(creds)
 	if err != nil {
 		panicString := fmt.Sprint("There was an error authenticating:", err)
 		panic(panicString)
 	}
-	if !auth.Access.Token.Expires.After(time.Now()) {
+	if !auth.GetExpiration().After(time.Now()) {
 		panic("There was an error. The auth token has an invalid expiration.")
 	}
 
 	// Find the endpoint for the image service.
-	url := ""
-	for _, svc := range auth.Access.ServiceCatalog {
-		if svc.Type == "image" {
-			for _, ep := range svc.Endpoints {
-				url = ep.PublicURL + "/v1"
-				break
-			}
-		}
-	}
-
-	if url == "" {
+	url, err := auth.GetEndpoint("image", "")
+	if url == "" || err != nil {
 		panic("v1 image service url not found during authentication")
 	}
 
-	imageService := image.Service{TokenID: auth.Access.Token.Id, Client: *http.DefaultClient, URL: url}
+	// Make a new client with these creds
+	sess, err := openstack.NewSession(nil, auth, nil)
+	if err != nil {
+		panicString := fmt.Sprint("Error crating new Session:", err)
+		panic(panicString)
+	}
+
+	imageService := image.Service{
+		Session: *sess,
+		Client:  *http.DefaultClient,
+		URL:     url + "/v1", // We're forcing Image v1 for now
+	}
 	imagesDetails, err := imageService.ImagesDetail()
 	if err != nil {
 		panicString := fmt.Sprint("Cannot access images:", err)

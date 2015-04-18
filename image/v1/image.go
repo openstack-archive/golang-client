@@ -24,7 +24,9 @@ package image
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 
@@ -38,8 +40,8 @@ import (
 // 	imageService := image.ImageService{Client: *http.DefaultClient, TokenId: tokenId, Url: "http://imageservicelocation"}
 //  images:= imageService.Images()
 type Service struct {
+	Session openstack.Session
 	Client  http.Client
-	TokenID string
 	URL     string
 }
 
@@ -150,19 +152,22 @@ func (imageService Service) queryImages(includeDetails bool, imagesResponseConta
 	}
 
 	var headers http.Header = http.Header{}
-	headers.Set("X-Auth-Token", imageService.TokenID)
 	headers.Set("Accept", "application/json")
-	resp, err := openstack.Get(reqURL.String(), nil, &headers)
+	resp, err := imageService.Session.Get(reqURL.String(), nil, &headers)
 	if err != nil {
 		return err
 	}
 
-	err = util.CheckHTTPResponseStatusCode(resp.Resp)
+	err = util.CheckHTTPResponseStatusCode(resp)
 	if err != nil {
 		return err
 	}
 
-	if err = json.Unmarshal(resp.Body, &imagesResponseContainer); err != nil {
+	rbody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return errors.New("aaa")
+	}
+	if err = json.Unmarshal(rbody, &imagesResponseContainer); err != nil {
 		return err
 	}
 	return nil

@@ -31,65 +31,65 @@ var zeroByte = &([]byte{}) //pointer to empty []byte
 //"limit" and "marker" corresponds to the API's "limit" and "marker".
 //"url" can be regular storage or cdn-enabled storage URL.
 //It returns []byte which then needs to be unmarshalled to decode the JSON.
-func ListContainers(limit int64, marker, url, token string) ([]byte, error) {
-	return ListObjects(limit, marker, "", "", "", url, token)
+func ListContainers(session *openstack.Session, limit int64, marker, url string) ([]byte, error) {
+	return ListObjects(session, limit, marker, "", "", "", url)
 }
 
 //GetAccountMeta calls the OpenStack retrieve account metadata API using
 //previously obtained token.
-func GetAccountMeta(url, token string) (http.Header, error) {
-	return GetObjectMeta(url, token)
+func GetAccountMeta(session *openstack.Session, url string) (http.Header, error) {
+	return GetObjectMeta(session, url)
 }
 
 //DeleteContainer calls the OpenStack delete container API using
 //previously obtained token.
-func DeleteContainer(url, token string) error {
-	return DeleteObject(url, token)
+func DeleteContainer(session *openstack.Session, url string) error {
+	return DeleteObject(session, url)
 }
 
 //GetContainerMeta calls the OpenStack retrieve object metadata API
 //using previously obtained token.
 //url can be regular storage or CDN-enabled storage URL.
-func GetContainerMeta(url, token string) (http.Header, error) {
-	return GetObjectMeta(url, token)
+func GetContainerMeta(session *openstack.Session, url string) (http.Header, error) {
+	return GetObjectMeta(session, url)
 }
 
 //SetContainerMeta calls the OpenStack API to create / update meta data
 //for container using previously obtained token.
 //url can be regular storage or CDN-enabled storage URL.
-func SetContainerMeta(url string, token string, s ...string) (err error) {
-	return SetObjectMeta(url, token, s...)
+func SetContainerMeta(session *openstack.Session, url string, headers http.Header) (err error) {
+	return SetObjectMeta(session, url, headers)
 }
 
 //PutContainer calls the OpenStack API to create / update
 //container using previously obtained token.
-func PutContainer(url, token string, s ...string) error {
-	return PutObject(zeroByte, url, token, s...)
+func PutContainer(session *openstack.Session, url string, headers http.Header) error {
+	return PutObject(session, zeroByte, url, headers)
 }
 
 //ListObjects calls the OpenStack list object API using previously
 //obtained token. "Limit", "marker", "prefix", "path", "delim" corresponds
 //to the API's "limit", "marker", "prefix", "path", and "delimiter".
-func ListObjects(limit int64,
-	marker, prefix, path, delim, conURL, token string) ([]byte, error) {
-	var query = "?format=json"
+func ListObjects(session *openstack.Session, limit int64,
+	marker, prefix, path, delim, conURL string) ([]byte, error) {
+	var query url.Values = url.Values{}
+	query.Add("format", "json")
 	if limit > 0 {
-		query += "&limit=" + strconv.FormatInt(limit, 10)
+		query.Add("limit", strconv.FormatInt(limit, 10))
 	}
 	if marker != "" {
-		query += "&marker=" + url.QueryEscape(marker)
+		query.Add("marker", url.QueryEscape(marker))
 	}
 	if prefix != "" {
-		query += "&prefix=" + url.QueryEscape(prefix)
+		query.Add("prefix", url.QueryEscape(prefix))
 	}
 	if path != "" {
-		query += "&path=" + url.QueryEscape(path)
+		query.Add("path", url.QueryEscape(path))
 	}
 	if delim != "" {
-		query += "&delimiter=" + url.QueryEscape(delim)
+		query.Add("delimiter", url.QueryEscape(delim))
 	}
-	resp, err := util.CallAPI("GET", conURL+query, zeroByte,
-		"X-Auth-Token", token)
+	resp, err := session.Get(conURL, &query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -107,23 +107,21 @@ func ListObjects(limit int64,
 //PutObject calls the OpenStack create object API using previously
 //obtained token.
 //url can be regular storage or CDN-enabled storage URL.
-func PutObject(fContent *[]byte, url, token string, s ...string) (err error) {
-	var headers http.Header = http.Header{}
-	headers.Set("X-Auth-Token", token)
-	resp, err := openstack.Put(url, nil, &headers, fContent)
+func PutObject(session *openstack.Session, fContent *[]byte, url string, headers http.Header) (err error) {
+	resp, err := session.Put(url, nil, &headers, fContent)
 	if err != nil {
 		return err
 	}
-	return util.CheckHTTPResponseStatusCode(resp.Resp)
+	return util.CheckHTTPResponseStatusCode(resp)
 }
 
 //CopyObject calls the OpenStack copy object API using previously obtained
 //token.  Note from API doc: "The destination container must exist before
 //attempting the copy."
-func CopyObject(srcURL, destURL, token string) (err error) {
-	resp, err := util.CallAPI("COPY", srcURL, zeroByte,
-		"X-Auth-Token", token,
-		"Destination", destURL)
+func CopyObject(session *openstack.Session, srcURL, destURL string) (err error) {
+	var headers http.Header = http.Header{}
+	headers.Add("Destination", destURL)
+	resp, err := session.Request("COPY", srcURL, nil, &headers, zeroByte)
 	if err != nil {
 		return err
 	}
@@ -138,8 +136,8 @@ func CopyObject(srcURL, destURL, token string) (err error) {
 //from the non-current container to the current." .. "If you want to completely
 //remove an object and you have five total versions of it, you must DELETE it
 //five times."
-func DeleteObject(url, token string) (err error) {
-	resp, err := util.CallAPI("DELETE", url, zeroByte, "X-Auth-Token", token)
+func DeleteObject(session *openstack.Session, url string) (err error) {
+	resp, err := session.Delete(url, nil, nil)
 	if err != nil {
 		return err
 	}
@@ -148,10 +146,9 @@ func DeleteObject(url, token string) (err error) {
 
 //SetObjectMeta calls the OpenStack API to create/update meta data for
 //object using previously obtained token.
-func SetObjectMeta(url string, token string, s ...string) (err error) {
-	s = append(s, "X-Auth-Token")
-	s = append(s, token)
-	resp, err := util.CallAPI("POST", url, zeroByte, s...)
+func SetObjectMeta(session *openstack.Session, url string, headers http.Header) (err error) {
+	// headers.Add("X-Auth-Token", token)
+	resp, err := session.Post(url, nil, &headers, zeroByte)
 	if err != nil {
 		return err
 	}
@@ -160,8 +157,8 @@ func SetObjectMeta(url string, token string, s ...string) (err error) {
 
 //GetObjectMeta calls the OpenStack retrieve object metadata API using
 //previously obtained token.
-func GetObjectMeta(url, token string) (http.Header, error) {
-	resp, err := util.CallAPI("HEAD", url, zeroByte, "X-Auth-Token", token)
+func GetObjectMeta(session *openstack.Session, url string) (http.Header, error) {
+	resp, err := session.Head(url, nil, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -175,8 +172,8 @@ func GetObjectMeta(url, token string) (http.Header, error) {
 //Since this implementation of GetObject retrieves header info, it
 //effectively executes GetObjectMeta also in addition to getting the
 //object content.
-func GetObject(url, token string) (http.Header, []byte, error) {
-	resp, err := util.CallAPI("GET", url, zeroByte, "X-Auth-Token", token)
+func GetObject(session *openstack.Session, url string) (http.Header, []byte, error) {
+	resp, err := session.Get(url, nil, nil)
 	if err != nil {
 		return nil, nil, err
 	}

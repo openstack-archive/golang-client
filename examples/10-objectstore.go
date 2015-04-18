@@ -18,10 +18,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"git.openstack.org/stackforge/golang-client.git/identity/v2"
-	"git.openstack.org/stackforge/golang-client.git/objectstorage/v1"
 	"io/ioutil"
+	"net/http"
 	"time"
+
+	"git.openstack.org/stackforge/golang-client.git/objectstorage/v1"
+	"git.openstack.org/stackforge/golang-client.git/openstack"
 )
 
 func main() {
@@ -29,45 +31,52 @@ func main() {
 
 	// Before working with object storage we need to authenticate with a project
 	// that has active object storage.
-	auth, err := identity.AuthUserNameTenantName(config.Host,
-		config.Username,
-		config.Password,
-		config.ProjectName)
+	// Authenticate with a project name, username, password.
+	creds := openstack.AuthOpts{
+		AuthUrl:  config.Host,
+		Project:  config.ProjectName,
+		Username: config.Username,
+		Password: config.Password,
+	}
+	auth, err := openstack.DoAuthRequest(creds)
 	if err != nil {
 		panicString := fmt.Sprint("There was an error authenticating:", err)
 		panic(panicString)
 	}
-	if !auth.Access.Token.Expires.After(time.Now()) {
+	if !auth.GetExpiration().After(time.Now()) {
 		panic("There was an error. The auth token has an invalid expiration.")
 	}
 
 	// Find the endpoint for object storage.
-	url := ""
-	for _, svc := range auth.Access.ServiceCatalog {
-		if svc.Type == "object-store" {
-			url = svc.Endpoints[0].PublicURL + "/"
-			break
-		}
-	}
-	if url == "" {
+	url, err := auth.GetEndpoint("object-store", "")
+	if url == "" || err != nil {
 		panic("object-store url not found during authentication")
 	}
 
-	hdr, err := objectstorage.GetAccountMeta(url, auth.Access.Token.Id)
+	// Make a new client with these creds
+	sess, err := openstack.NewSession(nil, auth, nil)
+	if err != nil {
+		panicString := fmt.Sprint("Error crating new Session:", err)
+		panic(panicString)
+	}
+
+	hdr, err := objectstorage.GetAccountMeta(sess, url)
 	if err != nil {
 		panicString := fmt.Sprint("There was an error getting account metadata:", err)
 		panic(panicString)
 	}
+	_ = hdr
 
 	// Create a new container.
-	if err = objectstorage.PutContainer(url+config.Container, auth.Access.Token.Id,
-		"X-Log-Retention", "true"); err != nil {
+	var headers http.Header = http.Header{}
+	headers.Add("X-Log-Retention", "true")
+	if err = objectstorage.PutContainer(sess, url+"/"+config.Container, headers); err != nil {
 		panicString := fmt.Sprint("PutContainer Error:", err)
 		panic(panicString)
 	}
 
 	// Get a list of all the containers at the selected endoint.
-	containersJson, err := objectstorage.ListContainers(0, "", url, auth.Access.Token.Id)
+	containersJson, err := objectstorage.ListContainers(sess, 0, "", url)
 	if err != nil {
 		panic(err)
 	}
@@ -93,12 +102,13 @@ func main() {
 	}
 
 	// Set and Get container metadata.
-	if err = objectstorage.SetContainerMeta(url+config.Container, auth.Access.Token.Id,
-		"X-Container-Meta-fubar", "false"); err != nil {
+	headers = http.Header{}
+	headers.Add("X-Container-Meta-fubar", "false")
+	if err = objectstorage.SetContainerMeta(sess, url+"/"+config.Container, headers); err != nil {
 		panic(err)
 	}
 
-	hdr, err = objectstorage.GetContainerMeta(url+config.Container, auth.Access.Token.Id)
+	hdr, err = objectstorage.GetContainerMeta(sess, url+"/"+config.Container)
 	if err != nil {
 		panicString := fmt.Sprint("GetContainerMeta Error:", err)
 		panic(panicString)
@@ -115,13 +125,14 @@ func main() {
 		panic(err)
 	}
 
+	headers = http.Header{}
+	headers.Add("X-Container-Meta-fubar", "false")
 	object := config.Container + "/" + srcFile
-	if err = objectstorage.PutObject(&fContent, url+object, auth.Access.Token.Id,
-		"X-Object-Meta-fubar", "false"); err != nil {
+	if err = objectstorage.PutObject(sess, &fContent, url+"/"+object, headers); err != nil {
 		panic(err)
 	}
-	objectsJson, err := objectstorage.ListObjects(0, "", "", "", "",
-		url+config.Container, auth.Access.Token.Id)
+	objectsJson, err := objectstorage.ListObjects(sess, 0, "", "", "", "",
+		url+"/"+config.Container)
 
 	type objectType struct {
 		Name, Hash, Content_type, Last_modified string
@@ -143,12 +154,13 @@ func main() {
 	}
 
 	// Manage object metadata
-	if err = objectstorage.SetObjectMeta(url+object, auth.Access.Token.Id,
-		"X-Object-Meta-fubar", "true"); err != nil {
+	headers = http.Header{}
+	headers.Add("X-Object-Meta-fubar", "true")
+	if err = objectstorage.SetObjectMeta(sess, url+"/"+object, headers); err != nil {
 		panicString := fmt.Sprint("SetObjectMeta Error:", err)
 		panic(panicString)
 	}
-	hdr, err = objectstorage.GetObjectMeta(url+object, auth.Access.Token.Id)
+	hdr, err = objectstorage.GetObjectMeta(sess, url+"/"+object)
 	if err != nil {
 		panicString := fmt.Sprint("GetObjectMeta Error:", err)
 		panic(panicString)
@@ -159,7 +171,7 @@ func main() {
 	}
 
 	// Retrieve an object and check that it is the same as what as uploaded.
-	_, body, err := objectstorage.GetObject(url+object, auth.Access.Token.Id)
+	_, body, err := objectstorage.GetObject(sess, url+"/"+object)
 	if err != nil {
 		panicString := fmt.Sprint("GetObject Error:", err)
 		panic(panicString)
@@ -170,24 +182,23 @@ func main() {
 	}
 
 	// Duplication (Copy) an existing object.
-	if err = objectstorage.CopyObject(url+object, "/"+object+".dup", auth.Access.Token.Id); err != nil {
+	if err = objectstorage.CopyObject(sess, url+"/"+object, "/"+object+".dup"); err != nil {
 		panicString := fmt.Sprint("CopyObject Error:", err)
 		panic(panicString)
 	}
 
 	// Delete the objects.
-	if err = objectstorage.DeleteObject(url+object, auth.Access.Token.Id); err != nil {
+	if err = objectstorage.DeleteObject(sess, url+"/"+object); err != nil {
 		panicString := fmt.Sprint("DeleteObject Error:", err)
 		panic(panicString)
 	}
-	if err = objectstorage.DeleteObject(url+object+".dup", auth.Access.Token.Id); err != nil {
+	if err = objectstorage.DeleteObject(sess, url+"/"+object+".dup"); err != nil {
 		panicString := fmt.Sprint("DeleteObject Error:", err)
 		panic(panicString)
 	}
 
 	// Delete the container that was previously created.
-	if err = objectstorage.DeleteContainer(url+config.Container,
-		auth.Access.Token.Id); err != nil {
+	if err = objectstorage.DeleteContainer(sess, url+"/"+config.Container); err != nil {
 		panicString := fmt.Sprint("DeleteContainer Error:", err)
 		panic(panicString)
 	}

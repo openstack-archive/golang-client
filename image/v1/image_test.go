@@ -22,6 +22,7 @@ import (
 	"testing"
 
 	"git.openstack.org/stackforge/golang-client.git/image/v1"
+	"git.openstack.org/stackforge/golang-client.git/openstack"
 	"git.openstack.org/stackforge/golang-client.git/testUtil"
 	"git.openstack.org/stackforge/golang-client.git/util"
 )
@@ -159,7 +160,18 @@ func testImageServiceAction(t *testing.T, uriEndsWith string, testData string, i
 	apiServer := testUtil.CreateGetJSONTestRequestServer(t, tokn, testData, anon)
 	defer apiServer.Close()
 
-	imageService := image.Service{TokenID: tokn, Client: *http.DefaultClient, URL: apiServer.URL}
+	auth := openstack.AuthToken{
+		Access: openstack.AccessType{
+			Token: openstack.Token{
+				ID: tokn,
+			},
+		},
+	}
+	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
+	imageService := image.Service{
+		Session: *sess,
+		URL:     apiServer.URL,
+	}
 	imageServiceAction(&imageService)
 }
 

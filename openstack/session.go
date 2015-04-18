@@ -19,12 +19,11 @@ import (
 	"bytes"
 	"crypto/tls"
 	"io"
-	"io/ioutil"
+	// "io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
-	"strings"
 )
 
 var Debug = new(bool)
@@ -34,46 +33,28 @@ type Response struct {
 	Body []byte
 }
 
-type TokenInterface interface {
-	GetTokenId() string
-}
-
-type Token struct {
-	Expires string
-	Id      string
-	Project struct {
-		Id   string
-		Name string
-	}
-}
-
-func (t Token) GetTokenId() string {
-	return t.Id
-}
-
 // Generic callback to get a token from the auth plugin
-type AuthFunc func(s *Session, opts interface{}) (TokenInterface, error)
+type AuthFunc func(s *Session, opts interface{}) (AuthRef, error)
 
 type Session struct {
-	httpClient   *http.Client
-	endpoint     string
-	authenticate AuthFunc
-	Token        TokenInterface
-	Headers      http.Header
-	//	  ServCat map[string]ServiceEndpoint
+	httpClient *http.Client
+	AuthToken  AuthRef
+	Headers    http.Header
 }
 
-func NewSession(af AuthFunc, endpoint string, tls *tls.Config) (session *Session, err error) {
-	tr := &http.Transport{
-		TLSClientConfig:    tls,
-		DisableCompression: true,
+func NewSession(hclient *http.Client, auth AuthRef, tls *tls.Config) (session *Session, err error) {
+	if hclient == nil {
+		// Only build a transport if we're also building the client
+		tr := &http.Transport{
+			TLSClientConfig:    tls,
+			DisableCompression: true,
+		}
+		hclient = &http.Client{Transport: tr}
 	}
 	session = &Session{
-		// TODO(dtroyer): httpClient needs to be able to be passed in, or set externally
-		httpClient:   &http.Client{Transport: tr},
-		endpoint:     strings.TrimRight(endpoint, "/"),
-		authenticate: af,
-		Headers:      http.Header{},
+		httpClient: hclient,
+		AuthToken:  auth,
+		Headers:    http.Header{},
 	}
 	return session, nil
 }
@@ -83,47 +64,35 @@ func (s *Session) NewRequest(method, url string, headers *http.Header, body io.R
 	if err != nil {
 		return nil, err
 	}
-	// add token, get one if needed
-	if s.Token == nil && s.authenticate != nil {
-		var tok TokenInterface
-		tok, err = s.authenticate(s, nil)
-		if err != nil {
-			// (re-)auth failure!!
-			return nil, err
-		}
-		s.Token = tok
-	}
 	if headers != nil {
 		req.Header = *headers
 	}
-	if s.Token != nil {
-		req.Header.Add("X-Auth-Token", s.Token.GetTokenId())
+	if s.AuthToken != nil {
+		req.Header.Add("X-Auth-Token", s.AuthToken.GetToken())
 	}
 	return
 }
 
-func (s *Session) Do(req *http.Request) (*Response, error) {
-	if *Debug {
-		d, _ := httputil.DumpRequestOut(req, true)
-		log.Printf(">>>>>>>>>> REQUEST:\n", string(d))
-	}
-
+func (s *Session) Do(req *http.Request) (*http.Response, error) {
 	// Add session headers
 	for k := range s.Headers {
 		req.Header.Set(k, s.Headers.Get(k))
 	}
 
-	hresp, err := s.httpClient.Do(req)
+	if *Debug {
+		d, _ := httputil.DumpRequestOut(req, true)
+		log.Printf(">>>>>>>>>> REQUEST:\n", string(d))
+	}
+
+	resp, err := s.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	if *Debug {
-		dr, _ := httputil.DumpResponse(hresp, true)
+		dr, _ := httputil.DumpResponse(resp, true)
 		log.Printf("<<<<<<<<<< RESULT:\n", string(dr))
 	}
 
-	resp := new(Response)
-	resp.Resp = hresp
 	return resp, nil
 }
 
@@ -134,7 +103,7 @@ func (s *Session) Request(
 	params *url.Values,
 	headers *http.Header,
 	body *[]byte,
-) (resp *Response, err error) {
+) (resp *http.Response, err error) {
 	// add params to url here
 	if params != nil {
 		url = url + "?" + params.Encode()
@@ -151,16 +120,9 @@ func (s *Session) Request(
 		return nil, err
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "application/json")
 
 	resp, err = s.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	// do we need to parse this in this func? yes...
-	defer resp.Resp.Body.Close()
-
-	resp.Body, err = ioutil.ReadAll(resp.Resp.Body)
 	if err != nil {
 		return nil, err
 	}
@@ -168,18 +130,32 @@ func (s *Session) Request(
 	return resp, nil
 }
 
+func (s *Session) Delete(
+	url string,
+	params *url.Values,
+	headers *http.Header) (resp *http.Response, err error) {
+	return s.Request("DELETE", url, params, headers, nil)
+}
+
 func (s *Session) Get(
 	url string,
 	params *url.Values,
-	headers *http.Header) (resp *Response, err error) {
+	headers *http.Header) (resp *http.Response, err error) {
 	return s.Request("GET", url, params, headers, nil)
+}
+
+func (s *Session) Head(
+	url string,
+	params *url.Values,
+	headers *http.Header) (resp *http.Response, err error) {
+	return s.Request("HEAD", url, params, headers, nil)
 }
 
 func (s *Session) Post(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *Response, err error) {
+	body *[]byte) (resp *http.Response, err error) {
 	return s.Request("POST", url, params, headers, body)
 }
 
@@ -187,7 +163,7 @@ func (s *Session) Put(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *Response, err error) {
+	body *[]byte) (resp *http.Response, err error) {
 	return s.Request("PUT", url, params, headers, body)
 }
 
@@ -195,8 +171,8 @@ func (s *Session) Put(
 func Get(
 	url string,
 	params *url.Values,
-	headers *http.Header) (resp *Response, err error) {
-	s, _ := NewSession(nil, "", nil)
+	headers *http.Header) (resp *http.Response, err error) {
+	s, _ := NewSession(nil, nil, nil)
 	return s.Get(url, params, headers)
 }
 
@@ -205,8 +181,8 @@ func Post(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *Response, err error) {
-	s, _ := NewSession(nil, "", nil)
+	body *[]byte) (resp *http.Response, err error) {
+	s, _ := NewSession(nil, nil, nil)
 	return s.Post(url, params, headers, body)
 }
 
@@ -215,7 +191,7 @@ func Put(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *Response, err error) {
-	s, _ := NewSession(nil, "", nil)
+	body *[]byte) (resp *http.Response, err error) {
+	s, _ := NewSession(nil, nil, nil)
 	return s.Put(url, params, headers, body)
 }

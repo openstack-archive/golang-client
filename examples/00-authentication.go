@@ -16,8 +16,10 @@ package main
 
 import (
 	"fmt"
-	"git.openstack.org/stackforge/golang-client.git/identity/v2"
+	// "git.openstack.org/stackforge/golang-client.git/identity/v2"
 	"time"
+
+	"git.openstack.org/stackforge/golang-client.git/openstack"
 )
 
 // Authentication examples.
@@ -26,42 +28,51 @@ func main() {
 
 	// Authenticate with just a username and password. The returned token is
 	// unscoped to a tenant.
-	auth, err := identity.AuthUserName(config.Host,
-		config.Username,
-		config.Password)
+	creds := openstack.AuthOpts{
+		AuthUrl:  config.Host,
+		Username: config.Username,
+		Password: config.Password,
+	}
+	auth, err := openstack.DoAuthRequest(creds)
 	if err != nil {
-		fmt.Println("There was an error authenticating:", err)
+		fmt.Println("Error authenticating username/password:", err)
 		return
 	}
-	if !auth.Access.Token.Expires.After(time.Now()) {
+	if !auth.GetExpiration().After(time.Now()) {
 		fmt.Println("There was an error. The auth token has an invalid expiration.")
 		return
 	}
 
-	// Authenticate with a username, password, tenant name.
-	auth, err = identity.AuthUserNameTenantName(config.Host,
-		config.Username,
-		config.Password,
-		config.ProjectName)
+	// Authenticate with a project name, username, password.
+	creds = openstack.AuthOpts{
+		AuthUrl:  config.Host,
+		Project:  config.ProjectName,
+		Username: config.Username,
+		Password: config.Password,
+	}
+	auth, err = openstack.DoAuthRequest(creds)
 	if err != nil {
-		fmt.Println("There was an error authenticating:", err)
+		fmt.Println("Error authenticating project/username/password:", err)
 		return
 	}
-	if !auth.Access.Token.Expires.After(time.Now()) {
+	if !auth.GetExpiration().After(time.Now()) {
 		fmt.Println("There was an error. The auth token has an invalid expiration.")
 		return
 	}
 
-	// Authenticate with a username, password, tenant id.
-	auth, err = identity.AuthUserNameTenantId(config.Host,
-		config.Username,
-		config.Password,
-		config.ProjectID)
+	// Authenticate with a project id, username, password.
+	creds = openstack.AuthOpts{
+		AuthUrl:  config.Host,
+		Project:  config.ProjectID,
+		Username: config.Username,
+		Password: config.Password,
+	}
+	auth, err = openstack.DoAuthRequest(creds)
 	if err != nil {
-		fmt.Println("There was an error authenticating:", err)
+		fmt.Println("Error authenticating project/username/password:", err)
 		return
 	}
-	if !auth.Access.Token.Expires.After(time.Now()) {
+	if !auth.GetExpiration().After(time.Now()) {
 		fmt.Println("There was an error. The auth token has an invalid expiration.")
 		return
 	}

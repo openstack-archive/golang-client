@@ -3,17 +3,31 @@ OpenStack Golang Client
 
 NOTE(dtroyer) Apr 2015: This repo is under heavy revision as it is being revived.
 
-stackforge/golang-client is yet another implementation of [OpenStack]
+`stackforge/golang-client` is an implementation of [OpenStack]
 (http://www.openstack.org/) API client in [Go language](http://golang.org).
-The code follows OpenStack licensing and borrows its infrastructure for code
-hosting.  It currently implements [Identity Service v2] 
+The code follows OpenStack licensing and uses the Stackforge infrastructure
+for hosting.  It currently implements [Identity Service v2] 
 (http://docs.openstack.org/api/openstack-identity-service/2.0/content/) 
 and [Object Storage v1] 
 (http://docs.openstack.org/api/openstack-object-storage/1.0/content/).
-Some API calls are not implemented initially, but the intention is to expand
-the lib over time (where pragmatic).
 
+The initial focus is on building a solid core REST Session and OpenStack
+authentication on which to build the usual API interfaces.  The architecture
+if the `Session` and authentication is similar to that used in the current
+Python Keystone client library: The `Session` object contains the HTTP
+interface methods and an authentication object that provides access to
+the auth token and service catalog.
+
+Current State
+-------------
 Code maturity is considered experimental.
+
+* The new Session object is functional and used by most of the code now.
+* The examples work.
+* The image tests work.
+* The obejct store tests do not work.
+* identity/v2/auth.go is now unused, will be kept around for a short time
+  for easier reference.
 
 Installation
 ------------
@@ -53,7 +67,7 @@ Apache v2.
 
 Contributing
 ------------
-The code repository borrows OpenStack StackForge infrastructure.
+The code repository utilizes the OpenStack StackForge infrastructure.
 Please use the [recommended workflow]
 (http://docs.openstack.org/infra/manual/developers.html#development-workflow).  If you are not a member yet,
 please consider joining as an [OpenStack contributor]

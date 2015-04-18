@@ -13,48 +13,47 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 package openstack_test
 
 import (
-    "encoding/json"
-    "net/http"
-    "testing"
+	"encoding/json"
+	"net/http"
+	"testing"
 
-    "git.openstack.org/stackforge/golang-client.git/openstack"
-    "git.openstack.org/stackforge/golang-client.git/testUtil"
+	"git.openstack.org/stackforge/golang-client.git/openstack"
+	"git.openstack.org/stackforge/golang-client.git/testUtil"
 )
 
 type TestStruct struct {
-    ID   string `json:"id"`
-    Name string `json:"name"`
+	ID   string `json:"id"`
+	Name string `json:"name"`
 }
 
 func TestSessionGet(t *testing.T) {
-    tokn := "eaaafd18-0fed-4b3a-81b4-663c99ec1cbb"
-    var apiServer = testUtil.CreateGetJsonTestServer(
-        t,
-        tokn,
-        `{"id":"id1","name":"Chris"}`,
-        nil,
-    )
-    expected := TestStruct{ID: "id1", Name: "Chris"}
-    actual := TestStruct{}
+	tokn := "eaaafd18-0fed-4b3a-81b4-663c99ec1cbb"
+	var apiServer = testUtil.CreateGetJsonTestServer(
+		t,
+		tokn,
+		`{"id":"id1","name":"Chris"}`,
+		nil,
+	)
+	expected := TestStruct{ID: "id1", Name: "Chris"}
+	actual := TestStruct{}
 
-    s, _ := openstack.NewSession(nil, "", nil)
-    var headers http.Header = http.Header{}
-    headers.Set("X-Auth-Token", tokn)
-    headers.Set("Accept", "application/json")
-    headers.Set("Etag", "md5hash-blahblah")
-    resp, err := s.Get(apiServer.URL, nil, &headers)
-    if err != nil {
-        t.Error(err)
-    }
-    testUtil.IsNil(t, err)
+	s, _ := openstack.NewSession(nil, "", nil)
+	var headers http.Header = http.Header{}
+	headers.Set("X-Auth-Token", tokn)
+	headers.Set("Accept", "application/json")
+	headers.Set("Etag", "md5hash-blahblah")
+	resp, err := s.Get(apiServer.URL, nil, &headers)
+	if err != nil {
+		t.Error(err)
+	}
+	testUtil.IsNil(t, err)
 
-    if err = json.Unmarshal(resp.Body, &actual); err != nil {
-        t.Error(err)
-    }
+	if err = json.Unmarshal(resp.Body, &actual); err != nil {
+		t.Error(err)
+	}
 
-    testUtil.Equals(t, expected, actual)
+	testUtil.Equals(t, expected, actual)
 }
