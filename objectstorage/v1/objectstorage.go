@@ -15,11 +15,12 @@
 package objectstorage
 
 import (
-	"git.openstack.org/stackforge/golang-client.git/misc"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strconv"
+
+	"git.openstack.org/stackforge/golang-client.git/util"
 )
 
 var zeroByte = &([]byte{}) //pointer to empty []byte
@@ -86,12 +87,12 @@ func ListObjects(limit int64,
 	if delim != "" {
 		query += "&delimiter=" + url.QueryEscape(delim)
 	}
-	resp, err := misc.CallAPI("GET", conURL+query, zeroByte,
+	resp, err := util.CallAPI("GET", conURL+query, zeroByte,
 		"X-Auth-Token", token)
 	if err != nil {
 		return nil, err
 	}
-	if err = misc.CheckHTTPResponseStatusCode(resp); err != nil {
+	if err = util.CheckHTTPResponseStatusCode(resp); err != nil {
 		return nil, err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
@@ -108,24 +109,24 @@ func ListObjects(limit int64,
 func PutObject(fContent *[]byte, url, token string, s ...string) (err error) {
 	s = append(s, "X-Auth-Token")
 	s = append(s, token)
-	resp, err := misc.CallAPI("PUT", url, fContent, s...)
+	resp, err := util.CallAPI("PUT", url, fContent, s...)
 	if err != nil {
 		return err
 	}
-	return misc.CheckHTTPResponseStatusCode(resp)
+	return util.CheckHTTPResponseStatusCode(resp)
 }
 
 //CopyObject calls the OpenStack copy object API using previously obtained
 //token.  Note from API doc: "The destination container must exist before
 //attempting the copy."
 func CopyObject(srcURL, destURL, token string) (err error) {
-	resp, err := misc.CallAPI("COPY", srcURL, zeroByte,
+	resp, err := util.CallAPI("COPY", srcURL, zeroByte,
 		"X-Auth-Token", token,
 		"Destination", destURL)
 	if err != nil {
 		return err
 	}
-	return misc.CheckHTTPResponseStatusCode(resp)
+	return util.CheckHTTPResponseStatusCode(resp)
 }
 
 //DeleteObject calls the OpenStack delete object API using
@@ -137,11 +138,11 @@ func CopyObject(srcURL, destURL, token string) (err error) {
 //remove an object and you have five total versions of it, you must DELETE it
 //five times."
 func DeleteObject(url, token string) (err error) {
-	resp, err := misc.CallAPI("DELETE", url, zeroByte, "X-Auth-Token", token)
+	resp, err := util.CallAPI("DELETE", url, zeroByte, "X-Auth-Token", token)
 	if err != nil {
 		return err
 	}
-	return misc.CheckHTTPResponseStatusCode(resp)
+	return util.CheckHTTPResponseStatusCode(resp)
 }
 
 //SetObjectMeta calls the OpenStack API to create/update meta data for
@@ -149,21 +150,21 @@ func DeleteObject(url, token string) (err error) {
 func SetObjectMeta(url string, token string, s ...string) (err error) {
 	s = append(s, "X-Auth-Token")
 	s = append(s, token)
-	resp, err := misc.CallAPI("POST", url, zeroByte, s...)
+	resp, err := util.CallAPI("POST", url, zeroByte, s...)
 	if err != nil {
 		return err
 	}
-	return misc.CheckHTTPResponseStatusCode(resp)
+	return util.CheckHTTPResponseStatusCode(resp)
 }
 
 //GetObjectMeta calls the OpenStack retrieve object metadata API using
 //previously obtained token.
 func GetObjectMeta(url, token string) (http.Header, error) {
-	resp, err := misc.CallAPI("HEAD", url, zeroByte, "X-Auth-Token", token)
+	resp, err := util.CallAPI("HEAD", url, zeroByte, "X-Auth-Token", token)
 	if err != nil {
 		return nil, err
 	}
-	return resp.Header, misc.CheckHTTPResponseStatusCode(resp)
+	return resp.Header, util.CheckHTTPResponseStatusCode(resp)
 }
 
 //GetObject calls the OpenStack retrieve object API using previously
@@ -174,11 +175,11 @@ func GetObjectMeta(url, token string) (http.Header, error) {
 //effectively executes GetObjectMeta also in addition to getting the
 //object content.
 func GetObject(url, token string) (http.Header, []byte, error) {
-	resp, err := misc.CallAPI("GET", url, zeroByte, "X-Auth-Token", token)
+	resp, err := util.CallAPI("GET", url, zeroByte, "X-Auth-Token", token)
 	if err != nil {
 		return nil, nil, err
 	}
-	if err = misc.CheckHTTPResponseStatusCode(resp); err != nil {
+	if err = util.CheckHTTPResponseStatusCode(resp); err != nil {
 		return nil, nil, err
 	}
 	var body []byte

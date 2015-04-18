@@ -17,12 +17,13 @@ package image_test
 
 import (
 	"errors"
-	"git.openstack.org/stackforge/golang-client.git/image/v1"
-	"git.openstack.org/stackforge/golang-client.git/misc"
-	"git.openstack.org/stackforge/golang-client.git/testUtil"
 	"net/http"
 	"strings"
 	"testing"
+
+    "git.openstack.org/stackforge/golang-client.git/image/v1"
+    "git.openstack.org/stackforge/golang-client.git/testUtil"
+    "git.openstack.org/stackforge/golang-client.git/util"
 )
 
 var tokn = "eaaafd18-0fed-4b3a-81b4-663c99ec1cbb"
@@ -61,8 +62,8 @@ func TestListImageDetails(t *testing.T) {
 		if len(images) != 2 {
 			t.Error(errors.New("Incorrect number of images found"))
 		}
-		createdAt, _ := misc.NewDateTime(`"2014-09-29T14:44:31"`)
-		updatedAt, _ := misc.NewDateTime(`"2014-09-29T15:33:37"`)
+		createdAt, _ := util.NewDateTime(`"2014-09-29T14:44:31"`)
+		updatedAt, _ := util.NewDateTime(`"2014-09-29T15:33:37"`)
 		owner := "10014302369510"
 		virtualSize := int64(2525125)
 		expectedImageDetail := image.DetailResponse{

@@ -24,9 +24,10 @@ package image
 
 import (
 	"fmt"
-	"git.openstack.org/stackforge/golang-client.git/misc"
 	"net/http"
 	"net/url"
+
+	"git.openstack.org/stackforge/golang-client.git/util"
 )
 
 // Service is a client service that can make
@@ -56,9 +57,9 @@ type Response struct {
 type DetailResponse struct {
 	CheckSum        string                `json:"checksum"`
 	ContainerFormat string                `json:"container_format"`
-	CreatedAt       misc.RFC8601DateTime  `json:"created_at"`
+	CreatedAt       util.RFC8601DateTime  `json:"created_at"`
 	Deleted         bool                  `json:"deleted"`
-	DeletedAt       *misc.RFC8601DateTime `json:"deleted_at"`
+	DeletedAt       *util.RFC8601DateTime `json:"deleted_at"`
 	DiskFormat      string                `json:"disk_format"`
 	ID              string                `json:"id"`
 	IsPublic        bool                  `json:"is_public"`
@@ -66,7 +67,7 @@ type DetailResponse struct {
 	MinRAM          int64                 `json:"min_ram"`
 	Name            string                `json:"name"`
 	Owner           *string               `json:"owner"`
-	UpdatedAt       misc.RFC8601DateTime  `json:"updated_at"`
+	UpdatedAt       util.RFC8601DateTime  `json:"updated_at"`
 	Properties      map[string]string     `json:"properties"`
 	Protected       bool                  `json:"protected"`
 	Status          string                `json:"status"`
@@ -146,7 +147,7 @@ func (imageService Service) queryImages(includeDetails bool, imagesResponseConta
 		return err
 	}
 
-	err = misc.GetJSON(reqURL.String(), imageService.TokenID, imageService.Client, &imagesResponseContainer)
+	err = util.GetJSON(reqURL.String(), imageService.TokenID, imageService.Client, &imagesResponseContainer)
 	if err != nil {
 		return err
 	}

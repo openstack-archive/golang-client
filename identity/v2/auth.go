@@ -20,10 +20,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"git.openstack.org/stackforge/golang-client.git/misc"
 	"io/ioutil"
 	"strings"
 	"time"
+
+	"git.openstack.org/stackforge/golang-client.git/util"
 )
 
 type Auth struct {
@@ -127,7 +128,7 @@ func AuthTenantNameTokenId(url, tenantName, tokenId string) (Auth, error) {
 
 func auth(url, jsonStr *string) (Auth, error) {
 	var s []byte = []byte(*jsonStr)
-	resp, err := misc.CallAPI("POST", *url, &s,
+	resp, err := util.CallAPI("POST", *url, &s,
 		"Accept-Encoding", "gzip,deflate",
 		"Accept", "application/json",
 		"Content-Type", "application/json",
@@ -135,7 +136,7 @@ func auth(url, jsonStr *string) (Auth, error) {
 	if err != nil {
 		return Auth{}, err
 	}
-	if err = misc.CheckHTTPResponseStatusCode(resp); err != nil {
+	if err = util.CheckHTTPResponseStatusCode(resp); err != nil {
 		return Auth{}, err
 	}
 	var contentType string = strings.ToLower(resp.Header.Get("Content-Type"))
