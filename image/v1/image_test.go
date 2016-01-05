@@ -21,10 +21,10 @@ import (
 	"strings"
 	"testing"
 
-	"git.openstack.org/stackforge/golang-client.git/image/v1"
-	"git.openstack.org/stackforge/golang-client.git/openstack"
-	"git.openstack.org/stackforge/golang-client.git/testUtil"
-	"git.openstack.org/stackforge/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client.git/image/v1"
+	"git.openstack.org/openstack/golang-client.git/openstack"
+	"git.openstack.org/openstack/golang-client.git/testUtil"
+	"git.openstack.org/openstack/golang-client.git/util"
 )
 
 var tokn = "eaaafd18-0fed-4b3a-81b4-663c99ec1cbb"
