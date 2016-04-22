@@ -20,8 +20,8 @@ import (
 	"net/http"
 	"testing"
 
-	"git.openstack.org/stackforge/golang-client.git/openstack"
-	"git.openstack.org/stackforge/golang-client.git/testUtil"
+	"git.openstack.org/openstack/golang-client.git/openstack"
+	"git.openstack.org/openstack/golang-client.git/testUtil"
 )
 
 type TestStruct struct {

@@ -19,7 +19,7 @@ import (
 	// "git.openstack.org/stackforge/golang-client.git/identity/v2"
 	"time"
 
-	"git.openstack.org/stackforge/golang-client.git/openstack"
+	"git.openstack.org/openstack/golang-client.git/openstack"
 )
 
 // Authentication examples.

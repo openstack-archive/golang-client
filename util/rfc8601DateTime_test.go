@@ -19,8 +19,8 @@ import (
 	"testing"
 	"time"
 
-	"git.openstack.org/stackforge/golang-client.git/testUtil"
-	"git.openstack.org/stackforge/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client.git/testUtil"
+	"git.openstack.org/openstack/golang-client.git/util"
 )
 
 var testValue = `{"created_at":"2014-09-29T14:44:31"}`
