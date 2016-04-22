@@ -30,8 +30,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"git.openstack.org/stackforge/golang-client.git/openstack"
-	"git.openstack.org/stackforge/golang-client.git/util"
+	"github.com/openstack/golang-client/openstack"
+	"github.com/openstack/golang-client/util"
 )
 
 // Service is a client service that can make

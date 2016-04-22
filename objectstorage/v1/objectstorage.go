@@ -20,8 +20,8 @@ import (
 	"net/url"
 	"strconv"
 
-	"git.openstack.org/stackforge/golang-client.git/openstack"
-	"git.openstack.org/stackforge/golang-client.git/util"
+	"github.com/openstack/golang-client/openstack"
+	"github.com/openstack/golang-client/util"
 )
 
 var zeroByte = &([]byte{}) //pointer to empty []byte
