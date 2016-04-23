@@ -17,6 +17,7 @@ package openstack_test
 
 import (
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -40,7 +41,7 @@ func TestSessionGet(t *testing.T) {
 	expected := TestStruct{ID: "id1", Name: "Chris"}
 	actual := TestStruct{}
 
-	s, _ := openstack.NewSession(nil, "", nil)
+	s, _ := openstack.NewSession(nil, nil, nil)
 	var headers http.Header = http.Header{}
 	headers.Set("X-Auth-Token", tokn)
 	headers.Set("Accept", "application/json")
@@ -51,7 +52,12 @@ func TestSessionGet(t *testing.T) {
 	}
 	testUtil.IsNil(t, err)
 
-	if err = json.Unmarshal(resp.Body, &actual); err != nil {
+	rbody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if err = json.Unmarshal(rbody, &actual); err != nil {
 		t.Error(err)
 	}
 

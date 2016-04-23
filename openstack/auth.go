@@ -89,10 +89,10 @@ func DoAuthRequest(authopts AuthOpts) (AuthRef, error) {
 
 	rbody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, errors.New("aaa")
+		return nil, errors.New("error reading response body")
 	}
 	if err = json.Unmarshal(rbody, &auth); err != nil {
-		return nil, errors.New("bbb")
+		return nil, errors.New("error unmarshalling response body")
 	}
 
 	return auth, nil
