@@ -18,6 +18,7 @@ package openstack
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strings"
 	"time"
@@ -91,6 +92,11 @@ func DoAuthRequest(authopts AuthOpts) (AuthRef, error) {
 	if err != nil {
 		return nil, errors.New("error reading response body")
 	}
+
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf("auth error: %s", rbody)
+	}
+
 	if err = json.Unmarshal(rbody, &auth); err != nil {
 		return nil, errors.New("error unmarshalling response body")
 	}
