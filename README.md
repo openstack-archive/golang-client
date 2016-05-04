@@ -5,7 +5,7 @@ NOTE(dtroyer) Apr 2015: This repo is under heavy revision as it is being revived
 
 `openstack/golang-client` is an implementation of [OpenStack]
 (http://www.openstack.org/) API client in [Go language](http://golang.org).
-The code follows OpenStack licensing and uses the Stackforge infrastructure
+The code follows OpenStack licensing and uses its CI infrastructure
 for hosting.  It currently implements [Identity Service v2] 
 (http://docs.openstack.org/api/openstack-identity-service/2.0/content/) 
 and [Object Storage v1] 
@@ -67,7 +67,7 @@ Apache v2.
 
 Contributing
 ------------
-The code repository utilizes the OpenStack StackForge infrastructure.
+The code repository utilizes the OpenStack CI infrastructure.
 Please use the [recommended workflow]
 (http://docs.openstack.org/infra/manual/developers.html#development-workflow).  If you are not a member yet,
 please consider joining as an [OpenStack contributor]
