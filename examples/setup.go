@@ -19,7 +19,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+
+	"git.openstack.org/openstack/golang-client.git/openstack"
 )
 
 // testconfig contains the user information needed by the acceptance and
@@ -32,6 +35,7 @@ type testconfig struct {
 	ProjectName string
 	Container   string
 	ImageRegion string
+	Debug		bool
 }
 
 // getConfig provides access to credentials in other tests and examples.
@@ -44,5 +48,9 @@ func getConfig() *testconfig {
 	if err = json.Unmarshal(userJSON, &config); err != nil {
 		panic("Unmarshal json failed")
 	}
+
+	// Propagate debug setting to packages
+	openstack.Debug = &config.Debug
+	fmt.Printf("config: %+v\n", config)
 	return config
 }
