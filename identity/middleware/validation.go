@@ -194,11 +194,10 @@ func base64DecodeFromCms(token string) ([]byte, error) {
 // -----BEGIN CMS-----
 // -----END CMS-----
 func trimCMSFormat(token string) string {
+	token = strings.Trim(token, "\n")
 	l := strings.Index(token, "\n")
 	r := strings.LastIndex(token, "\n")
-	t := token[l:r]
-	r2 := strings.LastIndex(t, "\n")
-	return t[0:r2]
+	return token[l:r]
 }
 
 // Get the signging certificate from local dir
