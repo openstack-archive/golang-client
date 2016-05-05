@@ -76,4 +76,11 @@ func main() {
 		fmt.Println("There was an error. The auth token has an invalid expiration.")
 		return
 	}
+
+	// Get the first endpoint
+	ep, err := auth.GetEndpoint("compute", "")
+	if err != nil {
+		fmt.Println("No compute endpoint found:", err)
+		return
+	}
 }
