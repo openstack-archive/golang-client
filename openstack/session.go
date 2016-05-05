@@ -18,12 +18,16 @@ package openstack
 import (
 	"bytes"
 	"crypto/tls"
+	"encoding/json"
+	"errors"
 	"io"
-	// "io/ioutil"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+
+	"git.openstack.org/openstack/golang-client.git/util"
 )
 
 var Debug = new(bool)
@@ -130,24 +134,66 @@ func (s *Session) Request(
 	return resp, nil
 }
 
+// Perform a simple get to an endpoint and unmarshall returned JSON
+func (s *Session) RequestJSON(
+	method string,
+	url string,
+	params *url.Values,
+	headers *http.Header,
+	body *[]byte,
+	responseContainer interface{},
+) (resp *http.Response, err error) {
+	resp, err =  s.Request(method, url, params, headers, body)
+	if err != nil {
+		return nil, err
+	}
+
+	err = util.CheckHTTPResponseStatusCode(resp)
+	if err != nil {
+		return nil, err
+	}
+
+	rbody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, errors.New("error reading response body")
+	}
+	if err = json.Unmarshal(rbody, &responseContainer); err != nil {
+		return nil, err
+	}
+
+	return resp, nil
+}
+
 func (s *Session) Delete(
 	url string,
 	params *url.Values,
-	headers *http.Header) (resp *http.Response, err error) {
+	headers *http.Header,
+) (resp *http.Response, err error) {
 	return s.Request("DELETE", url, params, headers, nil)
 }
 
 func (s *Session) Get(
 	url string,
 	params *url.Values,
-	headers *http.Header) (resp *http.Response, err error) {
+	headers *http.Header,
+) (resp *http.Response, err error) {
 	return s.Request("GET", url, params, headers, nil)
+}
+
+func (s *Session) GetJSON(
+	url string,
+	params *url.Values,
+	headers *http.Header,
+	responseContainer interface{},
+) (resp *http.Response, err error) {
+	return s.RequestJSON("GET", url, params, headers, nil, responseContainer)
 }
 
 func (s *Session) Head(
 	url string,
 	params *url.Values,
-	headers *http.Header) (resp *http.Response, err error) {
+	headers *http.Header,
+) (resp *http.Response, err error) {
 	return s.Request("HEAD", url, params, headers, nil)
 }
 
@@ -155,25 +201,59 @@ func (s *Session) Post(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *http.Response, err error) {
+	body *[]byte,
+) (resp *http.Response, err error) {
 	return s.Request("POST", url, params, headers, body)
+}
+
+func (s *Session) PostJSON(
+	url string,
+	params *url.Values,
+	headers *http.Header,
+	body *[]byte,
+	responseContainer interface{},
+) (resp *http.Response, err error) {
+	return s.RequestJSON("POST", url, params, headers, body, responseContainer)
 }
 
 func (s *Session) Put(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *http.Response, err error) {
+	body *[]byte,
+) (resp *http.Response, err error) {
 	return s.Request("PUT", url, params, headers, body)
+}
+
+// Delete sends a DELETE request.
+func Delete(
+	url string,
+	params *url.Values,
+	headers *http.Header,
+) (resp *http.Response, err error) {
+	s, _ := NewSession(nil, nil, nil)
+	return s.Delete(url, params, headers)
 }
 
 // Get sends a GET request.
 func Get(
 	url string,
 	params *url.Values,
-	headers *http.Header) (resp *http.Response, err error) {
+	headers *http.Header,
+) (resp *http.Response, err error) {
 	s, _ := NewSession(nil, nil, nil)
 	return s.Get(url, params, headers)
+}
+
+// GetJSON sends a GET request and unmarshalls returned JSON.
+func GetJSON(
+	url string,
+	params *url.Values,
+	headers *http.Header,
+	responseContainer interface{},
+) (resp *http.Response, err error) {
+	s, _ := NewSession(nil, nil, nil)
+	return s.RequestJSON("GET", url, params, headers, nil, responseContainer)
 }
 
 // Post sends a POST request.
@@ -181,9 +261,22 @@ func Post(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *http.Response, err error) {
+	body *[]byte,
+) (resp *http.Response, err error) {
 	s, _ := NewSession(nil, nil, nil)
 	return s.Post(url, params, headers, body)
+}
+
+// PostJSON sends a POST request and unmarshalls returned JSON.
+func PostJSON(
+	url string,
+	params *url.Values,
+	headers *http.Header,
+	body *[]byte,
+	responseContainer interface{},
+) (resp *http.Response, err error) {
+	s, _ := NewSession(nil, nil, nil)
+	return s.RequestJSON("POST", url, params, headers, nil, responseContainer)
 }
 
 // Put sends a PUT request.
@@ -191,7 +284,8 @@ func Put(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte) (resp *http.Response, err error) {
+	body *[]byte,
+) (resp *http.Response, err error) {
 	s, _ := NewSession(nil, nil, nil)
 	return s.Put(url, params, headers, body)
 }
