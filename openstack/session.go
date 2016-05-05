@@ -140,10 +140,15 @@ func (s *Session) RequestJSON(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte,
+	body interface{},
 	responseContainer interface{},
 ) (resp *http.Response, err error) {
-	resp, err =  s.Request(method, url, params, headers, body)
+	bodyjson, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err =  s.Request(method, url, params, headers, &bodyjson)
 	if err != nil {
 		return nil, err
 	}
@@ -210,7 +215,7 @@ func (s *Session) PostJSON(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte,
+	body interface{},
 	responseContainer interface{},
 ) (resp *http.Response, err error) {
 	return s.RequestJSON("POST", url, params, headers, body, responseContainer)
@@ -272,7 +277,7 @@ func PostJSON(
 	url string,
 	params *url.Values,
 	headers *http.Header,
-	body *[]byte,
+	body interface{},
 	responseContainer interface{},
 ) (resp *http.Response, err error) {
 	s, _ := NewSession(nil, nil, nil)
