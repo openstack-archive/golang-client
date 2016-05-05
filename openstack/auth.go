@@ -16,12 +16,7 @@
 package openstack
 
 import (
-	"encoding/json"
 	"errors"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"strings"
 	"time"
 )
 
@@ -69,41 +64,18 @@ func (s *AuthOpts) GetAuthType() (string, error) {
 // Basic auth call
 // These args should be an interface??
 func DoAuthRequest(authopts AuthOpts) (AuthRef, error) {
-	// url string, body []byte)
 	var auth = AuthToken{}
 
+	// Assume passwordv2 for now
 	auth_mod, err := NewUserPassV2(authopts)
 	if err != nil {
 		err = errors.New("Failed to get auth options")
 		return nil, err
 	}
 
-	path := auth_mod.AuthUrl + "/tokens"
-	body := auth_mod.JSON()
-	headers := &http.Header{}
-	headers.Add("Content-Type", "application/json")
-
-	resp, err := Post(path, nil, headers, &body)
+	_, err = PostJSON(auth_mod.AuthUrl + "/tokens", nil, nil, &auth_mod, &auth)
 	if err != nil {
 		return nil, err
-	}
-
-	contentType := strings.ToLower(resp.Header.Get("Content-Type"))
-	if strings.Contains(contentType, "json") != true {
-		return nil, errors.New("err: header Content-Type is not JSON")
-	}
-
-	rbody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, errors.New("error reading response body")
-	}
-
-	if resp.StatusCode != 200 {
-		return nil, fmt.Errorf("auth error: %s", rbody)
-	}
-
-	if err = json.Unmarshal(rbody, &auth); err != nil {
-		return nil, errors.New("error unmarshalling response body")
 	}
 
 	return auth, nil

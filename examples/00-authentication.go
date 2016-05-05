@@ -78,7 +78,7 @@ func main() {
 	}
 
 	// Get the first endpoint
-	ep, err := auth.GetEndpoint("compute", "")
+	_, err = auth.GetEndpoint("compute", "")
 	if err != nil {
 		fmt.Println("No compute endpoint found:", err)
 		return

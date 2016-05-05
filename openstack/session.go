@@ -148,6 +148,11 @@ func (s *Session) RequestJSON(
 		return nil, err
 	}
 
+	if headers == nil {
+		headers = &http.Header{}
+		headers.Add("Content-Type", "application/json")
+	}
+
 	resp, err =  s.Request(method, url, params, headers, &bodyjson)
 	if err != nil {
 		return nil, err
@@ -281,7 +286,7 @@ func PostJSON(
 	responseContainer interface{},
 ) (resp *http.Response, err error) {
 	s, _ := NewSession(nil, nil, nil)
-	return s.RequestJSON("POST", url, params, headers, nil, responseContainer)
+	return s.RequestJSON("POST", url, params, headers, body, responseContainer)
 }
 
 // Put sends a PUT request.
