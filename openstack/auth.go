@@ -20,6 +20,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -78,7 +79,10 @@ func DoAuthRequest(authopts AuthOpts) (AuthRef, error) {
 
 	path := auth_mod.AuthUrl + "/tokens"
 	body := auth_mod.JSON()
-	resp, err := Post(path, nil, nil, &body)
+	headers := &http.Header{}
+	headers.Add("Content-Type", "application/json")
+
+	resp, err := Post(path, nil, headers, &body)
 	if err != nil {
 		return nil, err
 	}
