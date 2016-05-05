@@ -41,22 +41,6 @@ type Token struct {
 	} `json:"tenant"`
 }
 
-type ServiceCatalogEntry struct {
-	Name      string            `json:"name"`
-	Type      string            `json:"type"`
-	Endpoints []ServiceEndpoint `json:"endpoints"`
-	// Endpoints []map[string]string `json:"endpoints"`
-}
-
-type ServiceEndpoint struct {
-	Type        string `json:"type"`
-	Region      string `json:"region"`
-	PublicURL   string `json:"publicurl"`
-	AdminURL    string `json:"adminurl"`
-	InternalURL string `json:"internalurl"`
-	VersionID   string `json:"versionid"`
-}
-
 func (s AuthToken) GetToken() string {
 	return s.Access.Token.ID
 }
@@ -69,13 +53,14 @@ func (s AuthToken) GetEndpoint(serviceType string, regionName string) (string, e
 
 	// Parse service catalog
 	for _, v := range s.Access.ServiceCatalog {
-		if v.Type == serviceType {
-			for _, r := range v.Endpoints {
-				if regionName == "" || r.Region == regionName {
-					return r.PublicURL, nil
-				}
-			}
+		ep, err := v.GetEndpoint(serviceType, "public", regionName)
+		if err == nil {
+			return ep, nil
 		}
 	}
 	return "", errors.New("err: endpoint not found")
+}
+
+func (s AuthToken) GetProject() string {
+	return s.Access.Token.Project.Name
 }
