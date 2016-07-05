@@ -167,7 +167,7 @@ func testImageServiceAction(t *testing.T, uriEndsWith string, testData string, i
 			},
 		},
 	}
-	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
+	sess := openstack.NewSession(http.DefaultClient, auth, nil)
 	imageService := image.Service{
 		Session: *sess,
 		URL:     apiServer.URL,
