@@ -41,7 +41,7 @@ func TestSessionGet(t *testing.T) {
 	expected := TestStruct{ID: "id1", Name: "Chris"}
 	actual := TestStruct{}
 
-	s, _ := openstack.NewSession(nil, nil, nil)
+	s := openstack.NewSession(nil, nil, nil)
 	var headers http.Header = http.Header{}
 	headers.Set("X-Auth-Token", tokn)
 	headers.Set("Accept", "application/json")

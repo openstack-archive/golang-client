@@ -50,11 +50,7 @@ func main() {
 	}
 
 	// Make a new client with these creds
-	sess, err := openstack.NewSession(nil, auth, nil)
-	if err != nil {
-		panicString := fmt.Sprint("Error crating new Session:", err)
-		panic(panicString)
-	}
+	sess := openstack.NewSession(nil, auth, nil)
 
 	imageService := image.Service{
 		Session: *sess,

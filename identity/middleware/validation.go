@@ -336,9 +336,6 @@ func (validator *Validator) renewToken() error {
 	}
 
 	// Make a new client with these creds
-	serviceTokenSession, err = openstack.NewSession(nil, auth, nil)
-	if err != nil {
-		return err
-	}
+	serviceTokenSession = openstack.NewSession(nil, auth, nil)
 	return nil
 }
