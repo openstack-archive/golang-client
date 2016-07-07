@@ -168,11 +168,11 @@ func (readCloser) Close() error {
 
 // CheckHTTPResponseStatusCode compares http response header StatusCode against expected
 // statuses. Primary function is to ensure StatusCode is in the 20x (return nil).
-// Ok: 200. Created: 201. Accepted: 202. No Content: 204.
+// Ok: 200. Created: 201. Accepted: 202. No Content: 204. Partial Content: 206.
 // Otherwise return error message.
 func CheckHTTPResponseStatusCode(resp *http.Response) error {
 	switch resp.StatusCode {
-	case 200, 201, 202, 204:
+	case 200, 201, 202, 204, 206:
 		return nil
 	case 400:
 		return errors.New("Error: response == 400 bad request")
