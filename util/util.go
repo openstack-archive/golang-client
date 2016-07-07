@@ -172,7 +172,7 @@ func (readCloser) Close() error {
 // Otherwise return error message.
 func CheckHTTPResponseStatusCode(resp *http.Response) error {
 	switch resp.StatusCode {
-	case 200, 201, 202, 204:
+	case 200, 201, 202, 204, 206:
 		return nil
 	case 400:
 		return errors.New("Error: response == 400 bad request")
