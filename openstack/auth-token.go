@@ -24,7 +24,7 @@ import (
 
 type AccessType struct {
 	Token          Token                 `json:"token"`
-	User           interface{}           `json:"id"`
+	User           interface{}           `json:"user"`
 	ServiceCatalog []ServiceCatalogEntry `json:"servicecatalog"`
 }
 

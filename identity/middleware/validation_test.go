@@ -42,7 +42,8 @@ func TestVerifyLocalPKIZ(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(access)
+	user := access.Access.User.(map[string]interface{})
+	fmt.Println(user["roles"])
 	project := access.Access.Token.Project
 	if project.Name != "demo" {
 		t.Fail()
