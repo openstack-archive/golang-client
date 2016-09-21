@@ -30,7 +30,7 @@ func main() {
 	// Authenticate with a username, password, tenant id.
 	creds := openstack.AuthOpts{
 		AuthUrl:  config.Host,
-		Project:  config.ProjectName,
+		ProjectName:  config.ProjectName,
 		Username: config.Username,
 		Password: config.Password,
 	}

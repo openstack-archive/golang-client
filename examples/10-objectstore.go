@@ -34,7 +34,7 @@ func main() {
 	// Authenticate with a project name, username, password.
 	creds := openstack.AuthOpts{
 		AuthUrl:  config.Host,
-		Project:  config.ProjectName,
+		ProjectName:  config.ProjectName,
 		Username: config.Username,
 		Password: config.Password,
 	}

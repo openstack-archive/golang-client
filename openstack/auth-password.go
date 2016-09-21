@@ -30,7 +30,8 @@ type PasswordCredentials struct {
 
 type OSAuth struct {
 	PasswordCredentials `json:"passwordCredentials"`
-	Project             string `json:"tenantName"`
+	ProjectName         string `json:"tenantName"`
+	ProjectId           string `json:"tenantId"`
 }
 
 type UserPassV2 struct {
@@ -59,7 +60,8 @@ func NewUserPassV2(ao AuthOpts) (upv2 *UserPassV2, err error) {
 				Username: ao.Username,
 				Password: ao.Password,
 			},
-			Project: ao.Project,
+			ProjectName: ao.ProjectName,
+			ProjectId: ao.ProjectId,
 		},
 	}
 	return upv2, nil

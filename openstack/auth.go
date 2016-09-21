@@ -39,7 +39,9 @@ type AuthOpts struct {
 	// Project is optional to get an unscoped token but required for
 	// a scoped token, which is required to do pretty much everything
 	// except list projects
-	Project string
+	ProjectName string
+
+	ProjectId string
 
 	// Username is required for password auth
 	Username string
