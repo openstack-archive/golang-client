@@ -17,6 +17,7 @@ package objectstorage_test
 import (
 	"errors"
 	"git.openstack.org/openstack/golang-client.git/objectstorage/v1"
+	"git.openstack.org/openstack/golang-client.git/openstack"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -46,7 +47,9 @@ func TestGetAccountMeta(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == HEAD"))
 		}))
 	defer apiServer.Close()
-	meta, err := objectstorage.GetAccountMeta(apiServer.URL, tokn)
+
+	sess := testGetSession()
+	meta, err := objectstorage.GetAccountMeta(sess, apiServer.URL)
 	if err != nil {
 		t.Error(err)
 	}
@@ -75,7 +78,9 @@ func TestListContainers(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == GET"))
 		}))
 	defer apiServer.Close()
-	myList, err := objectstorage.ListContainers(0, "", apiServer.URL, tokn)
+
+	sess := testGetSession()
+	myList, err := objectstorage.ListContainers(sess, 0, "", apiServer.URL)
 	if err != nil {
 		t.Error(err)
 	}
@@ -108,8 +113,10 @@ func TestListObjects(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == GET"))
 		}))
 	defer apiServer.Close()
+
+	sess := testGetSession()
 	myList, err := objectstorage.ListObjects(
-		0, "", "", "", "", apiServer.URL+containerPrefix, tokn)
+		sess, 0, "", "", "", "", apiServer.URL+containerPrefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -128,8 +135,10 @@ func TestDeleteContainer(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == DELETE"))
 		}))
 	defer apiServer.Close()
-	if err := objectstorage.DeleteContainer(apiServer.URL+containerPrefix,
-		tokn); err != nil {
+
+	sess := testGetSession()
+	if err := objectstorage.DeleteContainer(sess, apiServer.URL+containerPrefix,
+		); err != nil {
 		t.Error(err)
 	}
 }
@@ -147,7 +156,9 @@ func TestGetContainerMeta(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == HEAD"))
 		}))
 	defer apiServer.Close()
-	meta, err := objectstorage.GetContainerMeta(apiServer.URL+containerPrefix, tokn)
+
+	sess := testGetSession()
+	meta, err := objectstorage.GetContainerMeta(sess, apiServer.URL+containerPrefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -169,9 +180,13 @@ func TestSetContainerMeta(t *testing.T) {
 				"Failed: r.Method == POST && X-Container-Meta-Fruit == Apple"))
 		}))
 	defer apiServer.Close()
+
+	sess := testGetSession()
+	headers := http.Header{}
+	headers.Add("X-Container-Meta-Fruit", "Apple")
 	if err := objectstorage.SetContainerMeta(
-		apiServer.URL+containerPrefix, tokn,
-		"X-Container-Meta-Fruit", "Apple"); err != nil {
+		sess, apiServer.URL+containerPrefix,
+		headers); err != nil {
 		t.Error(err)
 	}
 }
@@ -186,8 +201,13 @@ func TestPutContainer(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == PUT"))
 		}))
 	defer apiServer.Close()
-	if err := objectstorage.PutContainer(apiServer.URL+containerPrefix,
-		tokn, "X-TTL", "259200", "X-Log-Retention", "true"); err != nil {
+
+	sess := testGetSession()
+	headers := http.Header{}
+	headers.Add("X-TTL", "259200")
+	headers.Add("X-Log-Retention", "true")
+	if err := objectstorage.PutContainer(sess, apiServer.URL+containerPrefix,
+		headers); err != nil {
 		t.Error(err)
 	}
 }
@@ -217,8 +237,10 @@ func TestPutObject(t *testing.T) {
 			t.Error(errors.New("Failed: Not 201"))
 		}))
 	defer apiServer.Close()
-	if err = objectstorage.PutObject(&fContent, apiServer.URL+objPrefix,
-		tokn); err != nil {
+
+	sess := testGetSession()
+	headers := http.Header{}
+	if err = objectstorage.PutObject(sess, &fContent, apiServer.URL+objPrefix, headers); err != nil {
 		t.Error(err)
 	}
 }
@@ -235,8 +257,10 @@ func TestCopyObject(t *testing.T) {
 				"Failed: r.Method == COPY && r.Header.Get(Destination) == destURL"))
 		}))
 	defer apiServer.Close()
-	if err := objectstorage.CopyObject(apiServer.URL+objPrefix, destURL,
-		tokn); err != nil {
+
+	sess := testGetSession()
+	if err := objectstorage.CopyObject(sess, apiServer.URL+objPrefix, destURL,
+		); err != nil {
 		t.Error(err)
 	}
 }
@@ -254,7 +278,9 @@ func TestGetObjectMeta(t *testing.T) {
 				"Failed: r.Method == HEAD && r.Header.Get(X-Auth-Token) == tokn"))
 		}))
 	defer apiServer.Close()
-	meta, err := objectstorage.GetObjectMeta(apiServer.URL+objPrefix, tokn)
+
+	sess := testGetSession()
+	meta, err := objectstorage.GetObjectMeta(sess, apiServer.URL+objPrefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -274,8 +300,12 @@ func TestSetObjectMeta(t *testing.T) {
 		t.Error(errors.New("Failed: r.Method == POST && X-Object-Meta-Fruit == Apple"))
 	}))
 	defer apiServer.Close()
-	if err := objectstorage.SetObjectMeta(apiServer.URL+objPrefix,
-		tokn, "X-Object-Meta-Fruit", "Apple"); err != nil {
+
+	sess := testGetSession()
+	headers := http.Header{}
+	headers.Add("X-Object-Meta-Fruit", "Apple")
+	if err := objectstorage.SetObjectMeta(sess, apiServer.URL+objPrefix,
+		headers); err != nil {
 		t.Error(err)
 	}
 }
@@ -299,7 +329,9 @@ func TestGetObject(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == GET"))
 		}))
 	defer apiServer.Close()
-	hdr, body, err := objectstorage.GetObject(apiServer.URL+objPrefix, tokn)
+
+	sess := testGetSession()
+	hdr, body, err := objectstorage.GetObject(sess, apiServer.URL+objPrefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -324,7 +356,21 @@ func TestDeleteObject(t *testing.T) {
 			t.Error(errors.New("Failed: r.Method == DELETE"))
 		}))
 	defer apiServer.Close()
-	if err := objectstorage.DeleteObject(apiServer.URL+objPrefix, tokn); err != nil {
+
+	sess := testGetSession()
+	if err := objectstorage.DeleteObject(sess, apiServer.URL+objPrefix); err != nil {
 		t.Error(err)
 	}
+}
+
+func testGetSession() *openstack.Session {
+	auth := openstack.AuthToken{
+		Access: openstack.AccessType{
+			Token: openstack.Token{
+				ID: tokn,
+			},
+		},
+	}
+	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
+	return sess
 }

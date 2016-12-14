@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"time"
 
-	"git.openstack.org/openstack/golang-client.git/volume"
+	"git.openstack.org/openstack/golang-client.git/volume/v2"
 	"git.openstack.org/openstack/golang-client.git/openstack"
 )
 
@@ -30,7 +30,7 @@ func main() {
 	// Authenticate with a username, password, tenant id.
 	creds := openstack.AuthOpts{
 		AuthUrl:  config.Host,
-		Project:  config.ProjectName,
+		ProjectName:  config.ProjectName,
 		Username: config.Username,
 		Password: config.Password,
 	}
