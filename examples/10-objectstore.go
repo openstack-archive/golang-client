@@ -35,10 +35,10 @@ func main() {
 	// that has active object storage.
 	// Authenticate with a project name, username, password.
 	creds := openstack.AuthOpts{
-		AuthUrl:  config.Host,
-		ProjectName:  config.ProjectName,
-		Username: config.Username,
-		Password: config.Password,
+		AuthUrl:     config.Host,
+		ProjectName: config.ProjectName,
+		Username:    config.Username,
+		Password:    config.Password,
 	}
 	auth, err := openstack.DoAuthRequest(creds)
 	if err != nil {
