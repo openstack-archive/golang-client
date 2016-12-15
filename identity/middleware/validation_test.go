@@ -30,10 +30,10 @@ const (
 
 func getAuthOpts() openstack.AuthOpts {
 	return openstack.AuthOpts{
-		AuthUrl:  "http://localhost:5000/v2.0",
-		ProjectName:  "demo",
-		Username: "demo",
-		Password: "demo",
+		AuthUrl:     "http://localhost:5000/v2.0",
+		ProjectName: "demo",
+		Username:    "demo",
+		Password:    "demo",
 	}
 }
 

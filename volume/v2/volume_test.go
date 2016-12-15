@@ -21,10 +21,10 @@ import (
 	"strings"
 	"testing"
 
-	"git.openstack.org/openstack/golang-client.git/volume/v2"
 	"git.openstack.org/openstack/golang-client.git/openstack"
 	"git.openstack.org/openstack/golang-client.git/testUtil"
 	"git.openstack.org/openstack/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client.git/volume/v2"
 )
 
 var tokn = "ae5aebe5-6a5d-4a40-840a-9736a067aff4"
@@ -40,9 +40,9 @@ func TestListVolumes(t *testing.T) {
 			t.Error(errors.New("Incorrect number of volumes found"))
 		}
 		expectedVolume := volume.Response{
-			Name:            "volume_test1",
-			ID:              "f5fc9874-fc89-4814-a358-23ba83a6115f",
-			Links:           []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
+			Name: "volume_test1",
+			ID:   "f5fc9874-fc89-4814-a358-23ba83a6115f",
+			Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
 				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}}}
 		// Verify first one matches expected values
 		testUtil.Equals(t, expectedVolume, volumes[0])
@@ -63,28 +63,28 @@ func TestListVolumeDetails(t *testing.T) {
 		}
 		createdAt, _ := util.NewDateTime(`"2014-09-29T14:44:31"`)
 		expectedVolumeDetail := volume.DetailResponse{
-			ID:						"30becf77-63fe-4f5e-9507-a0578ffe0949",
-			Attachments:			[]map[string]string{{"attachment_id": "ddb2ac07-ed62-49eb-93da-73b258dd9bec", "host_name": "host_test", "volume_id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "device": "/dev/vdb", "id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "server_id": "0f081aae-1b0c-4b89-930c-5f2562460c72"}},
-			Links:					[]map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "self"},
-						{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "bookmark"}},
-			Metadata:				map[string]string{"readonly": "false", "attached_mode": "rw"},
-			Protected:				false,
-			Status:					"available",
-			MigrationStatus:		"",
-			UserID:					"a971aa69-c61a-4a49-b392-b0e41609bc5d",
-			Encrypted:				false,
-			Multiattach:			false,
-			CreatedAt:				createdAt,
-			Description:			"test volume",
-			Volume_type:			"test_type",
-			Name:					"test_volume",
-			Source_volid:			"4b58bbb8-3b00-4f87-8243-8c622707bbab",
-			Snapshot_id:			"cc488e4a-9649-4e5f-ad12-20ab37c683b5",
-			Size:					2,
+			ID:          "30becf77-63fe-4f5e-9507-a0578ffe0949",
+			Attachments: []map[string]string{{"attachment_id": "ddb2ac07-ed62-49eb-93da-73b258dd9bec", "host_name": "host_test", "volume_id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "device": "/dev/vdb", "id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "server_id": "0f081aae-1b0c-4b89-930c-5f2562460c72"}},
+			Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "bookmark"}},
+			Metadata:        map[string]string{"readonly": "false", "attached_mode": "rw"},
+			Protected:       false,
+			Status:          "available",
+			MigrationStatus: "",
+			UserID:          "a971aa69-c61a-4a49-b392-b0e41609bc5d",
+			Encrypted:       false,
+			Multiattach:     false,
+			CreatedAt:       createdAt,
+			Description:     "test volume",
+			Volume_type:     "test_type",
+			Name:            "test_volume",
+			Source_volid:    "4b58bbb8-3b00-4f87-8243-8c622707bbab",
+			Snapshot_id:     "cc488e4a-9649-4e5f-ad12-20ab37c683b5",
+			Size:            2,
 
-			Aavailability_zone:		"default_cluster",
-			Rreplication_status:	"",
-			Consistencygroup_id:	""}
+			Aavailability_zone:  "default_cluster",
+			Rreplication_status: "",
+			Consistencygroup_id: ""}
 		testUtil.Equals(t, expectedVolumeDetail, volumes[0])
 	}
 
@@ -98,7 +98,7 @@ func TestLimitFilterUrlProduced(t *testing.T) {
 
 func TestAll_tenantFilterUrlProduced(t *testing.T) {
 	testVolumeQueryParameter(t, "volumes?all_tenant=1",
-	volume.QueryParameters{All_tenant: 1})
+		volume.QueryParameters{All_tenant: 1})
 }
 
 func TestMarkerUrlProduced(t *testing.T) {

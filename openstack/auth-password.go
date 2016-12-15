@@ -61,7 +61,7 @@ func NewUserPassV2(ao AuthOpts) (upv2 *UserPassV2, err error) {
 				Password: ao.Password,
 			},
 			ProjectName: ao.ProjectName,
-			ProjectId: ao.ProjectId,
+			ProjectId:   ao.ProjectId,
 		},
 	}
 	return upv2, nil
