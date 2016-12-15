@@ -153,7 +153,7 @@ func (s *Session) RequestJSON(
 		headers.Add("Content-Type", "application/json")
 	}
 
-	resp, err =  s.Request(method, url, params, headers, &bodyjson)
+	resp, err = s.Request(method, url, params, headers, &bodyjson)
 	if err != nil {
 		return nil, err
 	}

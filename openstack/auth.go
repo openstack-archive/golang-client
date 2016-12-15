@@ -75,7 +75,7 @@ func DoAuthRequest(authopts AuthOpts) (AuthRef, error) {
 		return nil, err
 	}
 
-	_, err = PostJSON(auth_mod.AuthUrl + "/tokens", nil, nil, &auth_mod, &auth)
+	_, err = PostJSON(auth_mod.AuthUrl+"/tokens", nil, nil, &auth_mod, &auth)
 	if err != nil {
 		return nil, err
 	}
