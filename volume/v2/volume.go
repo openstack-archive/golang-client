@@ -48,46 +48,46 @@ type Service struct {
 // Response is a structure for all properties of
 // an volume for a non detailed query
 type Response struct {
-	ID              string                `json:"id"`
-	Links			[]map[string]string   `json:"links"`
-	Name            string                `json:"name"`
+	ID    string              `json:"id"`
+	Links []map[string]string `json:"links"`
+	Name  string              `json:"name"`
 }
 
 // DetailResponse is a structure for all properties of
 // an volume for a detailed query
 type DetailResponse struct {
-	ID              string                `json:"id"`
-	Attachments		[]map[string]string	  `json:"attachments"`
-	Links			[]map[string]string   `json:"links"`
-	Metadata		map[string]string     `json:"metadata"`
-	Protected       bool                  `json:"protected"`
-	Status          string                `json:"status"`
-	MigrationStatus string                `json:"migration_status"`
-	UserID			string                `json:"user_id"`
-	Encrypted		bool                  `json:"encrypted"`
-	Multiattach		bool                  `json:"multiattach"`
-	CreatedAt       util.RFC8601DateTime  `json:"created_at"`
-	Description		string                `json:"description"`
-	Volume_type		string                `json:"volume_type"`
-	Name            string                `json:"name"`
-	Source_volid	string				  `json:"source_volid"`
-	Snapshot_id		string				  `json:"snapshot_id"`
-	Size            int64                 `json:"size"`
+	ID              string               `json:"id"`
+	Attachments     []map[string]string  `json:"attachments"`
+	Links           []map[string]string  `json:"links"`
+	Metadata        map[string]string    `json:"metadata"`
+	Protected       bool                 `json:"protected"`
+	Status          string               `json:"status"`
+	MigrationStatus string               `json:"migration_status"`
+	UserID          string               `json:"user_id"`
+	Encrypted       bool                 `json:"encrypted"`
+	Multiattach     bool                 `json:"multiattach"`
+	CreatedAt       util.RFC8601DateTime `json:"created_at"`
+	Description     string               `json:"description"`
+	Volume_type     string               `json:"volume_type"`
+	Name            string               `json:"name"`
+	Source_volid    string               `json:"source_volid"`
+	Snapshot_id     string               `json:"snapshot_id"`
+	Size            int64                `json:"size"`
 
-	Aavailability_zone		string		  `json:"availability_zone"`
-	Rreplication_status     string        `json:"replication_status"`
-	Consistencygroup_id     string        `json:"consistencygroup_id"`
+	Aavailability_zone  string `json:"availability_zone"`
+	Rreplication_status string `json:"replication_status"`
+	Consistencygroup_id string `json:"consistencygroup_id"`
 }
 
 // QueryParameters is a structure that
 // contains the filter, sort, and paging parameters for
 // an volume or volumedetail query.
 type QueryParameters struct {
-	All_tenant		int64
-	Marker          string
-	Limit           int64
-	SortKey         string
-	SortDirection   SortDirection
+	All_tenant    int64
+	Marker        string
+	Limit         int64
+	SortKey       string
+	SortDirection SortDirection
 }
 
 // SortDirection of the sort, ascending or descending.
