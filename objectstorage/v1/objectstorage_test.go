@@ -137,8 +137,7 @@ func TestDeleteContainer(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	if err := objectstorage.DeleteContainer(sess, apiServer.URL+containerPrefix,
-		); err != nil {
+	if err := objectstorage.DeleteContainer(sess, apiServer.URL+containerPrefix); err != nil {
 		t.Error(err)
 	}
 }
@@ -259,8 +258,7 @@ func TestCopyObject(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	if err := objectstorage.CopyObject(sess, apiServer.URL+objPrefix, destURL,
-		); err != nil {
+	if err := objectstorage.CopyObject(sess, apiServer.URL+objPrefix, destURL); err != nil {
 		t.Error(err)
 	}
 }
