@@ -43,3 +43,6 @@ relnotes:
 
 translation:
 	@echo "$@ not yet implemented"
+
+bindep:
+	bindep -b
