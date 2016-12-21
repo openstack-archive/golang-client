@@ -43,3 +43,18 @@ relnotes:
 
 translation:
 	@echo "$@ not yet implemented"
+
+.bindep:
+	virtualenv .bindep
+	.bindep/bin/pip install bindep
+
+bindep: .bindep
+	@.bindep/bin/bindep -b -f bindep.txt || true
+
+install-distro-packages:
+	tools/install-distro-packages.sh
+
+clean:
+	rm -rf .bindep
+
+.PHONY: bindep
