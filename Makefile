@@ -8,7 +8,8 @@ GIT_HOST = git.openstack.org
 
 PWD := $(shell pwd)
 TOP_DIR := $(shell basename $(PWD))
-export GOPATH := $(PWD)-gopath
+# Keep an existing GOPATH, make one up if it is undefined
+export GOPATH ?= $(PWD)-gopath
 DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(TOP_DIR).git
 
 env:
@@ -17,9 +18,12 @@ env:
 	@echo "GOPATH: $(GOPATH)"
 	@echo "DEST: $(DEST)"
 
-work: $(GOPATH)
+work: $(GOPATH) $(DEST)
 
 $(GOPATH):
+	mkdir -p $(GOPATH)
+
+$(DEST): $(GOPATH)
 	mkdir -p $(shell dirname $(DEST))
 	ln -s $(PWD) $(DEST)
 
@@ -43,3 +47,18 @@ relnotes:
 
 translation:
 	@echo "$@ not yet implemented"
+
+.bindep:
+	virtualenv .bindep
+	.bindep/bin/pip install bindep
+
+bindep: .bindep
+	@.bindep/bin/bindep -b -f bindep.txt || true
+
+install-distro-packages:
+	tools/install-distro-packages.sh
+
+clean:
+	rm -rf .bindep
+
+.PHONY: bindep
