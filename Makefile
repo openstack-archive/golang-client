@@ -13,11 +13,14 @@ GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
 DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(BASE_DIR).git
 
-env:
+env: bootstrap
 	@echo "PWD: $(PWD)"
 	@echo "BASE_DIR: $(BASE_DIR)"
 	@echo "GOPATH: $(GOPATH)"
 	@echo "DEST: $(DEST)"
+
+bootstrap:
+	./bootstrap.sh
 
 work: $(GOPATH) $(DEST)
 
@@ -28,11 +31,11 @@ $(DEST): $(GOPATH)
 	mkdir -p $(shell dirname $(DEST))
 	ln -s $(PWD) $(DEST)
 
-get: work
-	cd $(DEST); go get -tags=unit -t ./...
+depend: work
+	cd $(DEST) && glide install
 
-test: get
-	cd $(DEST); go test -tags=unit ./...
+test: depend
+	cd $(DEST) && go test -tags=unit ./...
 
 fmt: work
 	cd $(DEST) && go fmt ./...
@@ -61,8 +64,14 @@ install-distro-packages:
 
 clean:
 	rm -rf .bindep
+
+realclean: clean
+	rm -rf vendor
 	if [ "$(GOPATH)" = "$(GOPATH_DEFAULT)" ]; then \
 		rm -rf $(GOPATH); \
 	fi
 
-.PHONY: bindep clean
+shell: work
+	cd $(DEST) && $(SHELL) -i
+
+.PHONY: bindep clean cover depend docs fmt realclean test
