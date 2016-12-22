@@ -13,29 +13,22 @@ GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
 DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(BASE_DIR).git
 
-env:
-	@echo "PWD: $(PWD)"
-	@echo "BASE_DIR: $(BASE_DIR)"
-	@echo "GOPATH: $(GOPATH)"
-	@echo "DEST: $(DEST)"
+# CTI targets
 
-work: $(GOPATH) $(DEST)
+depend: work
+	cd $(DEST) && glide install
 
-$(GOPATH):
-	mkdir -p $(GOPATH)
+test: depend
+	cd $(DEST) && go test -tags=unit ./...
 
-$(DEST): $(GOPATH)
-	mkdir -p $(shell dirname $(DEST))
-	ln -s $(PWD) $(DEST)
-
-get: work
-	cd $(DEST); go get -tags=unit -t ./...
-
-test: get
-	cd $(DEST); go test -tags=unit ./...
+functional:
+	@echo "$@ not yet implemented"
 
 fmt: work
 	cd $(DEST) && go fmt ./...
+
+lint:
+	@echo "$@ not yet implemented"
 
 cover:
 	@echo "$@ not yet implemented"
@@ -49,6 +42,28 @@ relnotes:
 translation:
 	@echo "$@ not yet implemented"
 
+# Do the work here
+
+# Set up the development environment
+env: bootstrap
+	@echo "PWD: $(PWD)"
+	@echo "BASE_DIR: $(BASE_DIR)"
+	@echo "GOPATH: $(GOPATH)"
+	@echo "DEST: $(DEST)"
+
+# Get our dev/test dependencies in place
+bootstrap:
+	tools/test-setup.sh
+
+work: $(GOPATH) $(DEST)
+
+$(GOPATH):
+	mkdir -p $(GOPATH)
+
+$(DEST): $(GOPATH)
+	mkdir -p $(shell dirname $(DEST))
+	ln -s $(PWD) $(DEST)
+
 .bindep:
 	virtualenv .bindep
 	.bindep/bin/pip install bindep
@@ -61,8 +76,15 @@ install-distro-packages:
 
 clean:
 	rm -rf .bindep
+
+realclean: clean
+	rm -rf vendor
 	if [ "$(GOPATH)" = "$(GOPATH_DEFAULT)" ]; then \
 		rm -rf $(GOPATH); \
 	fi
 
-.PHONY: bindep clean
+shell: work
+	cd $(DEST) && $(SHELL) -i
+
+.PHONY: bindep clean cover depend docs fmt functional lint realclean \
+	relnotes test translation

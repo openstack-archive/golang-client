@@ -7,6 +7,22 @@ function is_fedora {
     [ -f /usr/bin/yum ] && cat /etc/*release | grep -q -e "Fedora"
 }
 
+PACKAGES=""
+if ! which virtualenv; then
+    PACKAGES="$PACKAGES virtualenv"
+fi
+if ! which make; then
+    PACKAGES="$PACKAGES make"
+fi
+if [[ -n $PACKAGES ]]; then
+    sudo apt-get -q --assume-yes install virtualenv
+fi
+
+# Check for bindep
+if ! which bindep; then
+    make bindep
+fi
+
 PACKAGES=$(make bindep || true)
 
 # inspired from project-config install-distro-packages.sh
