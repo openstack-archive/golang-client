@@ -1,0 +1,6 @@
+hash: 29383d95fa712061eaaec8c9f3af33f4a29700e0d385f4f9f454f1ce27b05fec
+updated: 2016-12-21T14:53:45.41134367-06:00
+imports:
+- name: github.com/fullsailor/pkcs7
+  version: cedaa6c8ea14493515fcf950eabba5eb1530c349
+devImports: []
