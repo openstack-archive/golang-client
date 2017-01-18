@@ -13,7 +13,7 @@
 //    under the License.
 
 // volume.go
-package volume_test
+package volume_v2_test
 
 import (
 	"errors"
@@ -30,7 +30,7 @@ import (
 var tokn = "ae5aebe5-6a5d-4a40-840a-9736a067aff4"
 
 func TestListVolumes(t *testing.T) {
-	anon := func(volumeService *volume.Service) {
+	anon := func(volumeService *volume_v2.Service) {
 		volumes, err := volumeService.Volumes()
 		if err != nil {
 			t.Error(err)
@@ -39,7 +39,7 @@ func TestListVolumes(t *testing.T) {
 		if len(volumes) != 2 {
 			t.Error(errors.New("Incorrect number of volumes found"))
 		}
-		expectedVolume := volume.Response{
+		expectedVolume := volume_v2.Response{
 			Name: "volume_test1",
 			ID:   "f5fc9874-fc89-4814-a358-23ba83a6115f",
 			Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
@@ -52,7 +52,7 @@ func TestListVolumes(t *testing.T) {
 }
 
 func TestListVolumeDetails(t *testing.T) {
-	anon := func(volumeService *volume.Service) {
+	anon := func(volumeService *volume_v2.Service) {
 		volumes, err := volumeService.VolumesDetail()
 		if err != nil {
 			t.Error(err)
@@ -62,7 +62,7 @@ func TestListVolumeDetails(t *testing.T) {
 			t.Error(errors.New("Incorrect number of volumes found"))
 		}
 		createdAt, _ := util.NewDateTime(`"2014-09-29T14:44:31"`)
-		expectedVolumeDetail := volume.DetailResponse{
+		expectedVolumeDetail := volume_v2.DetailResponse{
 			ID:          "30becf77-63fe-4f5e-9507-a0578ffe0949",
 			Attachments: []map[string]string{{"attachment_id": "ddb2ac07-ed62-49eb-93da-73b258dd9bec", "host_name": "host_test", "volume_id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "device": "/dev/vdb", "id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "server_id": "0f081aae-1b0c-4b89-930c-5f2562460c72"}},
 			Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "self"},
@@ -93,38 +93,38 @@ func TestListVolumeDetails(t *testing.T) {
 
 func TestLimitFilterUrlProduced(t *testing.T) {
 	testVolumeQueryParameter(t, "volumes?limit=2",
-		volume.QueryParameters{Limit: 2})
+		volume_v2.QueryParameters{Limit: 2})
 }
 
 func TestAll_tenantFilterUrlProduced(t *testing.T) {
 	testVolumeQueryParameter(t, "volumes?all_tenant=1",
-		volume.QueryParameters{All_tenant: 1})
+		volume_v2.QueryParameters{All_tenant: 1})
 }
 
 func TestMarkerUrlProduced(t *testing.T) {
 	testVolumeQueryParameter(t, "volumes?marker=1776335d-72f1-48c9-b0e7-74c62cb8fede",
-		volume.QueryParameters{Marker: "1776335d-72f1-48c9-b0e7-74c62cb8fede"})
+		volume_v2.QueryParameters{Marker: "1776335d-72f1-48c9-b0e7-74c62cb8fede"})
 }
 
 func TestSortKeySortUrlProduced(t *testing.T) {
 	testVolumeQueryParameter(t, "volumes?sort_key=id",
-		volume.QueryParameters{SortKey: "id"})
+		volume_v2.QueryParameters{SortKey: "id"})
 }
 
 func TestSortDirSortUrlProduced(t *testing.T) {
 	testVolumeQueryParameter(t, "volumes?sort_dir=asc",
-		volume.QueryParameters{SortDirection: volume.Asc})
+		volume_v2.QueryParameters{SortDirection: volume_v2.Asc})
 }
 
-func testVolumeQueryParameter(t *testing.T, uriEndsWith string, queryParameters volume.QueryParameters) {
-	anon := func(volumeService *volume.Service) {
+func testVolumeQueryParameter(t *testing.T, uriEndsWith string, queryParameters volume_v2.QueryParameters) {
+	anon := func(volumeService *volume_v2.Service) {
 		_, _ = volumeService.QueryVolumes(&queryParameters)
 	}
 
 	testVolumeServiceAction(t, uriEndsWith, sampleVolumesData, anon)
 }
 
-func testVolumeServiceAction(t *testing.T, uriEndsWith string, testData string, volumeServiceAction func(*volume.Service)) {
+func testVolumeServiceAction(t *testing.T, uriEndsWith string, testData string, volumeServiceAction func(*volume_v2.Service)) {
 	anon := func(req *http.Request) {
 		reqURL := req.URL.String()
 		if !strings.HasSuffix(reqURL, uriEndsWith) {
@@ -142,7 +142,7 @@ func testVolumeServiceAction(t *testing.T, uriEndsWith string, testData string, 
 		},
 	}
 	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
-	volumeService := volume.Service{
+	volumeService := volume_v2.Service{
 		Session: *sess,
 		URL:     apiServer.URL,
 	}

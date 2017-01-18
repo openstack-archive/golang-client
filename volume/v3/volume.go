@@ -21,7 +21,7 @@ Show and List methods can work.
 
 */
 
-package v3
+package volume_v3
 
 import (
 	"encoding/json"

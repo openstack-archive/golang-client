@@ -11,7 +11,9 @@ BASE_DIR := $(shell basename $(PWD))
 # Keep an existing GOPATH, make a private one if it is undefined
 GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
+PKG := $(shell awk  '/^package: / { print $$2 }' glide.yaml)
 DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(BASE_DIR).git
+DEST := $(GOPATH)/src/$(PKG)
 
 # CTI targets
 
@@ -45,11 +47,12 @@ translation:
 # Do the work here
 
 # Set up the development environment
-env:
+env: bootstrap
 	@echo "PWD: $(PWD)"
 	@echo "BASE_DIR: $(BASE_DIR)"
 	@echo "GOPATH: $(GOPATH)"
 	@echo "DEST: $(DEST)"
+	@echo "PKG: $(PKG)"
 
 # Get our dev/test dependencies in place
 bootstrap:
