@@ -34,7 +34,9 @@ esac
 case $OS in
     darwin)
         if which brew 1>/dev/null; then
-            brew install glide
+            if ! which glide 1>/dev/null; then
+                brew install glide
+            fi
         else
             echo "Homebrew not found, install Glide from source?"
         fi
