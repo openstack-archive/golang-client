@@ -15,18 +15,16 @@
 /*
 Package volume implements a client library for accessing OpenStack Volume service
 
-The CRUD operation of volumes can be retrieved using the api. Right now only
-
-Show and List methods can work.
+The CRUD operation of volumes can be retrieved using the api.
 
 */
 
-package volume_v3
+package volume
 
 import (
 	"encoding/json"
-	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 
@@ -34,30 +32,73 @@ import (
 	"git.openstack.org/openstack/golang-client.git/util"
 )
 
-type Service struct {
+type Service interface {
+	Create(reqBody *CreateBody) (Response, error)
+
+	Show(volID string) (DetailResponse, error)
+
+	List() ([]Response, error)
+
+	Detail() ([]DetailResponse, error)
+
+	Update(id string, reqBody *CreateBody) (Response, error)
+
+	Delete(id string) error
+
+	Attach(id string, reqBody *AttachBody) error
+
+	Detach(id string, reqBody *DetachBody) error
+}
+
+type volumeService struct {
 	Session openstack.Session
 	Client  http.Client
 	URL     string
 }
 
-type RequestBody struct {
-	// The volume name [OPTIONAL]
-	Name string `json:"name"`
-	// The size of the volume, in gibibytes (GiB) [REQUIRED]
-	Size int `json:"size"`
+func NewService(
+	session openstack.Session,
+	client http.Client,
+	url string) (*volumeService, error) {
+
+	vs := &volumeService{
+		Session: session,
+		Client:  client,
+		URL:     url,
+	}
+
+	return vs, nil
 }
 
-type Body struct {
+type RequestBody struct {
+	Name         string `json:"name"`
+	Size         int    `json:"size"`
+	HostName     string `json:"host_name"`
+	Device       string `json:"device"`
+	AttachmentID string `json:"attachment_id"`
+}
+
+type CreateBody struct {
 	VolumeBody RequestBody `json:"volume"`
+}
+
+type AttachBody struct {
+	VolumeBody RequestBody `json:"os-attach"`
+}
+
+type DetachBody struct {
+	VolumeBody RequestBody `json:"os-detach"`
 }
 
 // Response is a structure for all properties of
 // an volume for a non detailed query
 type Response struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
-
-	Consistencygroup_id string `json:"consistencygroup_id"`
+	ID          string              `json:"id"`
+	Name        string              `json:"name"`
+	Status      string              `json:"status"`
+	Size        int                 `json:"size"`
+	Volume_type string              `json:"volume_type"`
+	Attachments []map[string]string `json:"attachments"`
 }
 
 // DetailResponse is a structure for all properties of
@@ -79,7 +120,7 @@ type DetailResponse struct {
 	Name            string               `json:"name"`
 	Source_volid    string               `json:"source_volid"`
 	Snapshot_id     string               `json:"snapshot_id"`
-	Size            int64                `json:"size"`
+	Size            int                  `json:"size"`
 
 	Aavailability_zone  string `json:"availability_zone"`
 	Rreplication_status string `json:"replication_status"`
@@ -102,15 +143,16 @@ type DetailVolumesResponse struct {
 	DetailVolumes []DetailResponse `json:"volumes"`
 }
 
-func (volumeService Service) Create(reqBody *Body) (Response, error) {
-	return volumeService.createVolume(reqBody)
+func (vs volumeService) Create(reqBody *CreateBody) (Response, error) {
+	return createVolume(vs, reqBody)
 }
 
-func (volumeService Service) createVolume(reqBody *Body) (Response, error) {
+func createVolume(vs volumeService, reqBody *CreateBody) (Response, error) {
 	nullResponse := Response{}
 
-	reqURL, err := url.Parse(volumeService.URL)
+	reqURL, err := url.Parse(vs.URL)
 	if err != nil {
+		log.Println("Parse URL error:", err)
 		return nullResponse, err
 	}
 	urlPostFix := "/volumes"
@@ -119,8 +161,11 @@ func (volumeService Service) createVolume(reqBody *Body) (Response, error) {
 	var headers http.Header = http.Header{}
 	headers.Set("Content-Type", "application/json")
 	body, _ := json.Marshal(reqBody)
-	resp, err := volumeService.Session.Post(reqURL.String(), nil, &headers, &body)
+	log.Printf("Start POST request to create volume, url = %s, body = %s\n",
+		reqURL.String(), body)
+	resp, err := vs.Session.Post(reqURL.String(), nil, &headers, &body)
 	if err != nil {
+		log.Println("POST response error:", err)
 		return nullResponse, err
 	}
 
@@ -131,7 +176,8 @@ func (volumeService Service) createVolume(reqBody *Body) (Response, error) {
 
 	rbody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nullResponse, errors.New("aaa")
+		log.Println("Read response body failed:", err)
+		return nullResponse, err
 	}
 
 	volumeResponse := new(VolumeResponse)
@@ -141,15 +187,16 @@ func (volumeService Service) createVolume(reqBody *Body) (Response, error) {
 	return volumeResponse.Volume, nil
 }
 
-func (volumeService Service) Show(id string) (Response, error) {
-	return volumeService.getVolume(id)
+func (vs volumeService) Show(id string) (DetailResponse, error) {
+	return getVolume(vs, id)
 }
 
-func (volumeService Service) getVolume(id string) (Response, error) {
-	nullResponse := Response{}
+func getVolume(vs volumeService, id string) (DetailResponse, error) {
+	nullResponse := DetailResponse{}
 
-	reqURL, err := url.Parse(volumeService.URL)
+	reqURL, err := url.Parse(vs.URL)
 	if err != nil {
+		log.Println("Parse URL error:", err)
 		return nullResponse, err
 	}
 	urlPostFix := "/volumes" + "/" + id
@@ -157,8 +204,10 @@ func (volumeService Service) getVolume(id string) (Response, error) {
 
 	var headers http.Header = http.Header{}
 	headers.Set("Content-Type", "application/json")
-	resp, err := volumeService.Session.Get(reqURL.String(), nil, &headers)
+	log.Println("Start GET request to get volume, url =", reqURL.String())
+	resp, err := vs.Session.Get(reqURL.String(), nil, &headers)
 	if err != nil {
+		log.Println("GET response error:", err)
 		return nullResponse, err
 	}
 
@@ -169,34 +218,38 @@ func (volumeService Service) getVolume(id string) (Response, error) {
 
 	rbody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nullResponse, errors.New("aaa")
-	}
-
-	volumeResponse := new(VolumeResponse)
-	if err = json.Unmarshal(rbody, volumeResponse); err != nil {
+		log.Println("Read response body failed:", err)
 		return nullResponse, err
 	}
-	return volumeResponse.Volume, nil
+
+	detailVolumeResponse := new(DetailVolumeResponse)
+	if err = json.Unmarshal(rbody, detailVolumeResponse); err != nil {
+		return nullResponse, err
+	}
+	return detailVolumeResponse.DetailVolume, nil
 }
 
-func (volumeService Service) List() ([]Response, error) {
-	return volumeService.getAllVolumes()
+func (vs volumeService) List() ([]Response, error) {
+	return getAllVolumes(vs)
 }
 
-func (volumeService Service) getAllVolumes() ([]Response, error) {
+func getAllVolumes(vs volumeService) ([]Response, error) {
 	nullResponses := make([]Response, 0)
 
-	reqURL, err := url.Parse(volumeService.URL)
+	reqURL, err := url.Parse(vs.URL)
 	if err != nil {
+		log.Println("Parse URL error:", err)
 		return nullResponses, err
 	}
-	urlPostFix := "/volumes"
+	urlPostFix := "/volumes/detail"
 	reqURL.Path += urlPostFix
 
 	var headers http.Header = http.Header{}
 	headers.Set("Content-Type", "application/json")
-	resp, err := volumeService.Session.Get(reqURL.String(), nil, &headers)
+	log.Println("Start GET request to get all volumes, url =", reqURL.String())
+	resp, err := vs.Session.Get(reqURL.String(), nil, &headers)
 	if err != nil {
+		log.Println("GET response error:", err)
 		return nullResponses, err
 	}
 
@@ -207,7 +260,8 @@ func (volumeService Service) getAllVolumes() ([]Response, error) {
 
 	rbody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nullResponses, errors.New("aaa")
+		log.Println("Read response body failed:", err)
+		return nullResponses, err
 	}
 
 	volumesResponse := new(VolumesResponse)
@@ -217,15 +271,58 @@ func (volumeService Service) getAllVolumes() ([]Response, error) {
 	return volumesResponse.Volumes, nil
 }
 
-func (volumeService Service) Update(id string, reqBody *Body) (Response, error) {
-	return volumeService.updateVolume(id, reqBody)
+func (vs volumeService) Detail() ([]DetailResponse, error) {
+	return detailAllVolumes(vs)
 }
 
-func (volumeService Service) updateVolume(id string, reqBody *Body) (Response, error) {
+func detailAllVolumes(vs volumeService) ([]DetailResponse, error) {
+	nullResponses := make([]DetailResponse, 0)
+
+	reqURL, err := url.Parse(vs.URL)
+	if err != nil {
+		log.Println("Parse URL error:", err)
+		return nullResponses, err
+	}
+	urlPostFix := "/volumes/detail"
+	reqURL.Path += urlPostFix
+
+	var headers http.Header = http.Header{}
+	headers.Set("Content-Type", "application/json")
+	log.Println("Start GET request to detail all volumes, url =", reqURL.String())
+	resp, err := vs.Session.Get(reqURL.String(), nil, &headers)
+	if err != nil {
+		log.Println("GET response error:", err)
+		return nullResponses, err
+	}
+
+	err = util.CheckHTTPResponseStatusCode(resp)
+	if err != nil {
+		return nullResponses, err
+	}
+
+	rbody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Println("Read response body failed:", err)
+		return nullResponses, err
+	}
+
+	detailVolumesResponse := new(DetailVolumesResponse)
+	if err = json.Unmarshal(rbody, detailVolumesResponse); err != nil {
+		return nullResponses, err
+	}
+	return detailVolumesResponse.DetailVolumes, nil
+}
+
+func (vs volumeService) Update(id string, reqBody *CreateBody) (Response, error) {
+	return updateVolume(vs, id, reqBody)
+}
+
+func updateVolume(vs volumeService, id string, reqBody *CreateBody) (Response, error) {
 	nullResponse := Response{}
 
-	reqURL, err := url.Parse(volumeService.URL)
+	reqURL, err := url.Parse(vs.URL)
 	if err != nil {
+		log.Println("Parse URL error:", err)
 		return nullResponse, err
 	}
 	urlPostFix := "/volumes" + "/" + id
@@ -234,8 +331,11 @@ func (volumeService Service) updateVolume(id string, reqBody *Body) (Response, e
 	var headers http.Header = http.Header{}
 	headers.Set("Content-Type", "application/json")
 	body, _ := json.Marshal(reqBody)
-	resp, err := volumeService.Session.Put(reqURL.String(), nil, &headers, &body)
+	log.Printf("Start PUT request to update volume, url = %s, body = %s\n",
+		reqURL.String(), body)
+	resp, err := vs.Session.Put(reqURL.String(), nil, &headers, &body)
 	if err != nil {
+		log.Println("PUT response error:", err)
 		return nullResponse, err
 	}
 
@@ -246,7 +346,8 @@ func (volumeService Service) updateVolume(id string, reqBody *Body) (Response, e
 
 	rbody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nullResponse, errors.New("aaa")
+		log.Println("Read response body failed:", err)
+		return nullResponse, err
 	}
 
 	volumeResponse := new(VolumeResponse)
@@ -256,13 +357,14 @@ func (volumeService Service) updateVolume(id string, reqBody *Body) (Response, e
 	return volumeResponse.Volume, nil
 }
 
-func (volumeService Service) Delete(id string) error {
-	return volumeService.deleteVolume(id)
+func (vs volumeService) Delete(id string) error {
+	return deleteVolume(vs, id)
 }
 
-func (volumeService Service) deleteVolume(id string) error {
-	reqURL, err := url.Parse(volumeService.URL)
+func deleteVolume(vs volumeService, id string) error {
+	reqURL, err := url.Parse(vs.URL)
 	if err != nil {
+		log.Println("Parse URL error:", err)
 		return err
 	}
 	urlPostFix := "/volumes" + "/" + id
@@ -270,8 +372,74 @@ func (volumeService Service) deleteVolume(id string) error {
 
 	var headers http.Header = http.Header{}
 	headers.Set("Content-Type", "application/json")
-	resp, err := volumeService.Session.Delete(reqURL.String(), nil, &headers)
+	log.Println("Start DELETE request to delete volume, url =", reqURL.String())
+	resp, err := vs.Session.Delete(reqURL.String(), nil, &headers)
 	if err != nil {
+		log.Println("DELETE response error:", err)
+		return err
+	}
+
+	err = util.CheckHTTPResponseStatusCode(resp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (vs volumeService) Attach(id string, reqBody *AttachBody) error {
+	return attachVolume(vs, id, reqBody)
+}
+
+func attachVolume(vs volumeService, id string, reqBody *AttachBody) error {
+	reqURL, err := url.Parse(vs.URL)
+	if err != nil {
+		log.Println("Parse URL error:", err)
+		return err
+	}
+	urlPostFix := "/volumes" + "/" + id + "/action"
+	reqURL.Path += urlPostFix
+
+	var headers http.Header = http.Header{}
+	headers.Set("Content-Type", "application/json")
+	body, _ := json.Marshal(reqBody)
+	log.Printf("Start POST request to attach volume, url = %s, body = %s\n",
+		reqURL.String(), body)
+	resp, err := vs.Session.Post(reqURL.String(), nil, &headers, &body)
+	if err != nil {
+		log.Println("POST response error:", err)
+		return err
+	}
+
+	err = util.CheckHTTPResponseStatusCode(resp)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (vs volumeService) Detach(id string, reqBody *DetachBody) error {
+	return detachVolume(vs, id, reqBody)
+}
+
+func detachVolume(vs volumeService, id string, reqBody *DetachBody) error {
+	reqURL, err := url.Parse(vs.URL)
+	if err != nil {
+		log.Println("Parse URL error:", err)
+		return err
+	}
+	urlPostFix := "/volumes" + "/" + id + "/action"
+	reqURL.Path += urlPostFix
+
+	var headers http.Header = http.Header{}
+	headers.Set("Content-Type", "application/json")
+	body, _ := json.Marshal(reqBody)
+	log.Printf("Start POST request to detach volume, url = %s, body = %s\n",
+		reqURL.String(), body)
+	resp, err := vs.Session.Post(reqURL.String(), nil, &headers, &body)
+	if err != nil {
+		log.Println("PUT response error:", err)
 		return err
 	}
 
