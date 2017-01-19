@@ -13,7 +13,7 @@
 //    under the License.
 
 /*
-Package volume implements a client library for accessing OpenStack Volume service
+Package v3 implements a client library for accessing OpenStack Volume service
 
 The CRUD operation of volumes can be retrieved using the api.
 
@@ -29,16 +29,19 @@ import (
 
 	"git.openstack.org/openstack/golang-client.git/openstack"
 	"git.openstack.org/openstack/golang-client.git/testUtil"
+	"git.openstack.org/openstack/golang-client.git/util"
 	"git.openstack.org/openstack/golang-client.git/volume/v3"
 )
 
 var tokn = "ae5aebe5-6a5d-4a40-840a-9736a067aff4"
 
-/*
 func TestCreateVolume(t *testing.T) {
-	anon := func(volumeService *v3.Service) {
-		requestBody := v3.RequestBody{100, "myvol1"}
-		volume, err := volumeService.Create(&requestBody)
+	anon := func(volumeService v3.Service) {
+		requestBody := v3.RequestBody{}
+		requestBody.Name = "myvol1"
+		requestBody.Size = 2
+		body := v3.CreateBody{requestBody}
+		volume, err := volumeService.Create(&body)
 		if err != nil {
 			t.Error(err)
 		}
@@ -51,32 +54,64 @@ func TestCreateVolume(t *testing.T) {
 		testUtil.Equals(t, expectedVolume, volume)
 	}
 
-	//testCreateVolumeServiceAction(t, "volumes", sampleVolumesData, anon)
+	testCreateVolumeServiceAction(t, tokn, sampleVolumeData, "volumes", sampleRequestBody, anon)
 }
-*/
 
-// TODO(dtroyer): skipping due to job failure for now, this must be fixed
-// func TestGetVolume(t *testing.T) {
-// 	anon := func(volumeService *volume_v3.Service) {
-// 		volID := "f5fc9874-fc89-4814-a358-23ba83a6115f"
-// 		volume, err := volumeService.Show(volID)
-// 		if err != nil {
-// 			t.Error(err)
-// 		}
+func testCreateVolumeServiceAction(t *testing.T, tokn string, testData string, uriEndsWith string, sampleRequestBody string, volumeServiceAction func(v3.Service)) {
+	apiServer := testUtil.CreatePostJSONTestRequestServer(t, tokn, testData, uriEndsWith, sampleRequestBody)
+	defer apiServer.Close()
 
-// 		expectedVolume := volume_v3.Response{
-// 			Name: "myvol1",
-// 			ID:   "f5fc9874-fc89-4814-a358-23ba83a6115f",
-// 			// Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
-// 			// 	{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}}
-// 		}
-// 		testUtil.Equals(t, expectedVolume, volume)
-// 	}
+	auth := openstack.AuthToken{
+		Access: openstack.AccessType{
+			Token: openstack.Token{
+				ID: tokn,
+			},
+		},
+	}
+	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
+	volumeService, _ := v3.NewService(*sess, *http.DefaultClient, apiServer.URL)
+	volumeServiceAction(volumeService)
+}
 
-// 	testGetVolumeServiceAction(t, "f5fc9874-fc89-4814-a358-23ba83a6115f", sampleVolumeData, anon)
-// }
+func TestGetVolume(t *testing.T) {
+	anon := func(volumeService v3.Service) {
+		volID := "30becf77-63fe-4f5e-9507-a0578ffe0949"
+		volume, err := volumeService.Show(volID)
+		if err != nil {
+			t.Error(err)
+		}
 
-func testGetVolumeServiceAction(t *testing.T, uriEndsWith string, testData string, volumeServiceAction func(*volume_v3.Service)) {
+		createdAt, _ := util.NewDateTime(`"2014-09-29T14:44:31"`)
+		expectedVolume := v3.DetailResponse{
+			ID:          "30becf77-63fe-4f5e-9507-a0578ffe0949",
+			Attachments: []map[string]string{{"attachment_id": "ddb2ac07-ed62-49eb-93da-73b258dd9bec", "host_name": "host_test", "volume_id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "device": "/dev/vdb", "id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "server_id": "0f081aae-1b0c-4b89-930c-5f2562460c72"}},
+			Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "bookmark"}},
+			Metadata:        map[string]string{"readonly": "false", "attached_mode": "rw"},
+			Protected:       false,
+			Status:          "available",
+			MigrationStatus: "",
+			UserID:          "a971aa69-c61a-4a49-b392-b0e41609bc5d",
+			Encrypted:       false,
+			Multiattach:     false,
+			CreatedAt:       createdAt,
+			Description:     "test volume",
+			Volume_type:     "test_type",
+			Name:            "test_volume",
+			Source_volid:    "4b58bbb8-3b00-4f87-8243-8c622707bbab",
+			Snapshot_id:     "cc488e4a-9649-4e5f-ad12-20ab37c683b5",
+			Size:            2,
+
+			Aavailability_zone:  "default_cluster",
+			Rreplication_status: "",
+			Consistencygroup_id: ""}
+		testUtil.Equals(t, expectedVolume, volume)
+	}
+
+	testGetVolumeServiceAction(t, "30becf77-63fe-4f5e-9507-a0578ffe0949", sampleVolumeDetailData, anon)
+}
+
+func testGetVolumeServiceAction(t *testing.T, uriEndsWith string, testData string, volumeServiceAction func(v3.Service)) {
 	anon := func(req *http.Request) {
 		reqURL := req.URL.String()
 		if !strings.HasSuffix(reqURL, uriEndsWith) {
@@ -94,33 +129,29 @@ func testGetVolumeServiceAction(t *testing.T, uriEndsWith string, testData strin
 		},
 	}
 	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
-	volumeService := volume_v3.Service{
-		Session: *sess,
-		URL:     apiServer.URL,
-	}
-	volumeServiceAction(&volumeService)
+	volumeService, _ := v3.NewService(*sess, *http.DefaultClient, apiServer.URL)
+	volumeServiceAction(volumeService)
 }
 
 func TestGetAllVolumes(t *testing.T) {
-	anon := func(volumeService *volume_v3.Service) {
+	anon := func(volumeService v3.Service) {
 		volumes, err := volumeService.List()
 		if err != nil {
 			t.Error(err)
 		}
 
-		expectedVolume := volume_v3.Response{
+		expectedVolume := v3.Response{
 			Name: "myvol1",
 			ID:   "f5fc9874-fc89-4814-a358-23ba83a6115f",
-			// Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
-			// 	{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}}
-		}
+			Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}}}
 		testUtil.Equals(t, expectedVolume, volumes[0])
 	}
 
-	testGetAllVolumesServiceAction(t, "volumes", sampleVolumesData, anon)
+	testDetailAllVolumesServiceAction(t, "volumes", sampleVolumesData, anon)
 }
 
-func testGetAllVolumesServiceAction(t *testing.T, uriEndsWith string, testData string, volumeServiceAction func(*volume_v3.Service)) {
+func testGetAllVolumesServiceAction(t *testing.T, uriEndsWith string, testData string, volumeServiceAction func(v3.Service)) {
 	anon := func(req *http.Request) {
 		reqURL := req.URL.String()
 		if !strings.HasSuffix(reqURL, uriEndsWith) {
@@ -138,31 +169,83 @@ func testGetAllVolumesServiceAction(t *testing.T, uriEndsWith string, testData s
 		},
 	}
 	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
-	volumeService := volume_v3.Service{
-		Session: *sess,
-		URL:     apiServer.URL,
-	}
-	volumeServiceAction(&volumeService)
+	volumeService, _ := v3.NewService(*sess, *http.DefaultClient, apiServer.URL)
+	volumeServiceAction(volumeService)
 }
 
-/*
-func TestDeleteVolume(t *testing.T) {
-	anon := func(volumeService *v3.Service) {
-		volID := "f5fc9874-fc89-4814-a358-23ba83a6115f"
-		_, err := volumeService.Delete(volID)
+func TestTailAllVolumes(t *testing.T) {
+	anon := func(volumeService v3.Service) {
+		volumes, err := volumeService.Detail()
 		if err != nil {
 			t.Error(err)
 		}
-		volume, err := volumeService.Show(volID)
 
-		expectedVolume := v3.Response{}
-		testUtil.Equals(t, expectedVolume, volume)
+		createdAt, _ := util.NewDateTime(`"2014-09-29T14:44:31"`)
+		expectedVolumeDetail := v3.DetailResponse{
+			ID:          "30becf77-63fe-4f5e-9507-a0578ffe0949",
+			Attachments: []map[string]string{{"attachment_id": "ddb2ac07-ed62-49eb-93da-73b258dd9bec", "host_name": "host_test", "volume_id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "device": "/dev/vdb", "id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "server_id": "0f081aae-1b0c-4b89-930c-5f2562460c72"}},
+			Links: []map[string]string{{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "bookmark"}},
+			Metadata:        map[string]string{"readonly": "false", "attached_mode": "rw"},
+			Protected:       false,
+			Status:          "available",
+			MigrationStatus: "",
+			UserID:          "a971aa69-c61a-4a49-b392-b0e41609bc5d",
+			Encrypted:       false,
+			Multiattach:     false,
+			CreatedAt:       createdAt,
+			Description:     "test volume",
+			Volume_type:     "test_type",
+			Name:            "test_volume",
+			Source_volid:    "4b58bbb8-3b00-4f87-8243-8c622707bbab",
+			Snapshot_id:     "cc488e4a-9649-4e5f-ad12-20ab37c683b5",
+			Size:            2,
+
+			Aavailability_zone:  "default_cluster",
+			Rreplication_status: "",
+			Consistencygroup_id: ""}
+
+		testUtil.Equals(t, expectedVolumeDetail, volumes[0])
 	}
 
-	testDeleteVolumeServiceAction(t, "f5fc9874-fc89-4814-a358-23ba83a6115f", anon)
+	testDetailAllVolumesServiceAction(t, "volumes/detail", sampleVolumesDetailData, anon)
 }
 
-func testDeleteVolumeServiceAction(t *testing.T, uriEndsWith string, volumeServiceAction func(*v3.Service)) {
+func testDetailAllVolumesServiceAction(t *testing.T, uriEndsWith string, testData string, volumeServiceAction func(v3.Service)) {
+	anon := func(req *http.Request) {
+		reqURL := req.URL.String()
+		if !strings.HasSuffix(reqURL, uriEndsWith) {
+			t.Error(errors.New("Incorrect url created, expected:" + uriEndsWith + " at the end, actual url:" + reqURL))
+		}
+	}
+	apiServer := testUtil.CreateGetJSONTestRequestServer(t, tokn, testData, anon)
+	defer apiServer.Close()
+
+	auth := openstack.AuthToken{
+		Access: openstack.AccessType{
+			Token: openstack.Token{
+				ID: tokn,
+			},
+		},
+	}
+	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
+	volumeService, _ := v3.NewService(*sess, *http.DefaultClient, apiServer.URL)
+	volumeServiceAction(volumeService)
+}
+
+func TestDeleteVolume(t *testing.T) {
+	anon := func(volumeService v3.Service) {
+		volID := "30becf77-63fe-4f5e-9507-a0578ffe0949"
+		err := volumeService.Delete(volID)
+		if err != nil {
+			t.Error(err)
+		}
+	}
+
+	testDeleteVolumeServiceAction(t, "volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", anon)
+}
+
+func testDeleteVolumeServiceAction(t *testing.T, uriEndsWith string, volumeServiceAction func(v3.Service)) {
 	apiServer := testUtil.CreateDeleteTestRequestServer(t, tokn, uriEndsWith)
 	defer apiServer.Close()
 
@@ -174,34 +257,120 @@ func testDeleteVolumeServiceAction(t *testing.T, uriEndsWith string, volumeServi
 		},
 	}
 	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
-	volumeService := v3.Service{
-		Session: *sess,
-		URL:     apiServer.URL,
-	}
-	volumeServiceAction(&volumeService)
+	volumeService, _ := v3.NewService(*sess, *http.DefaultClient, apiServer.URL)
+	volumeServiceAction(volumeService)
 }
-*/
+
+var sampleRequestBody = `{"volume":{"name":"myvol1","size":2,"host_name":"","mountpoint":"","attachment_id":""}}`
 
 var sampleVolumeData = `{
-		 "name":"myvol1",
-		 "id":"f5fc9874-fc89-4814-a358-23ba83a6115f",
-		 "links":[{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
-		 {"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}]
+	"volume": {
+		"name":"myvol1",
+		"id":"f5fc9874-fc89-4814-a358-23ba83a6115f",
+		"links":[
+			{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
+			{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}
+		]
+	}
 }`
 
 var sampleVolumesData = `{
    "volumes":[
+		{
+			"name":"myvol1",
+			"id":"f5fc9874-fc89-4814-a358-23ba83a6115f",
+			"links":[
+				{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}
+			]
+		},
+		{
+			"name":"myvol2",
+			"id":"60055a0a-2451-4d78-af9c-f2302150602f",
+			"links":[
+				{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/60055a0a-2451-4d78-af9c-f2302150602f", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/60055a0a-2451-4d78-af9c-f2302150602f", "rel": "bookmark"}
+			]
+		}
+   	]
+}`
+
+var sampleVolumeDetailData = `{
+   "volume": {
+		"id":"30becf77-63fe-4f5e-9507-a0578ffe0949",
+		"attachments":[{"attachment_id": "ddb2ac07-ed62-49eb-93da-73b258dd9bec", "host_name": "host_test", "volume_id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "device": "/dev/vdb", "id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "server_id": "0f081aae-1b0c-4b89-930c-5f2562460c72"}],
+		"links":[{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "bookmark"}],
+		"metadata":{"readonly": "false", "attached_mode": "rw"},
+		"protected":false,
+		"status":"available",
+		"migrationStatus":null,
+		"user_id":"a971aa69-c61a-4a49-b392-b0e41609bc5d",
+		"encrypted":false,
+		"multiattach":false,
+		"created_at":"2014-09-29T14:44:31",
+		"description":"test volume",
+		"volume_type":"test_type",
+		"name":"test_volume",
+		"source_volid":"4b58bbb8-3b00-4f87-8243-8c622707bbab",
+		"snapshot_id":"cc488e4a-9649-4e5f-ad12-20ab37c683b5",
+		"size":2,
+
+		"availability_zone":"default_cluster",
+		"replication_status":null,
+		"consistencygroup_id":null
+	}
+}`
+
+var sampleVolumesDetailData = `{
+   "volumes":[
 	  {
-		 "name":"myvol1",
-		 "id":"f5fc9874-fc89-4814-a358-23ba83a6115f",
-		 "links":[{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "self"},
-		 {"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/f5fc9874-fc89-4814-a358-23ba83a6115f", "rel": "bookmark"}]
+		"id":"30becf77-63fe-4f5e-9507-a0578ffe0949",
+		"attachments":[{"attachment_id": "ddb2ac07-ed62-49eb-93da-73b258dd9bec", "host_name": "host_test", "volume_id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "device": "/dev/vdb", "id": "30becf77-63fe-4f5e-9507-a0578ffe0949", "server_id": "0f081aae-1b0c-4b89-930c-5f2562460c72"}],
+		"links":[{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/30becf77-63fe-4f5e-9507-a0578ffe0949", "rel": "bookmark"}],
+		"metadata":{"readonly": "false", "attached_mode": "rw"},
+		"protected":false,
+		"status":"available",
+		"migrationStatus":null,
+		"user_id":"a971aa69-c61a-4a49-b392-b0e41609bc5d",
+		"encrypted":false,
+		"multiattach":false,
+		"created_at":"2014-09-29T14:44:31",
+		"description":"test volume",
+		"volume_type":"test_type",
+		"name":"test_volume",
+		"source_volid":"4b58bbb8-3b00-4f87-8243-8c622707bbab",
+		"snapshot_id":"cc488e4a-9649-4e5f-ad12-20ab37c683b5",
+		"size":2,
+
+		"availability_zone":"default_cluster",
+		"replication_status":null,
+		"consistencygroup_id":null
 	  },
 	  {
-		 "name":"myvol2",
-		 "id":"60055a0a-2451-4d78-af9c-f2302150602f",
-		 "links":[{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/60055a0a-2451-4d78-af9c-f2302150602f", "rel": "self"},
-		 {"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/60055a0a-2451-4d78-af9c-f2302150602f", "rel": "bookmark"}]
+		"id":"242d3d14-2efd-4c63-9a6b-ef6bc8eed756",
+		"attachments":[{"attachment_id": "9d4fb045-f957-489b-9e7d-f6f156002c04", "host_name": "host_test2", "volume_id": "242d3d14-2efd-4c63-9a6b-ef6bc8eed756", "device": "/dev/vdb", "id": "242d3d14-2efd-4c63-9a6b-ef6bc8eed756", "server_id": "9f47bd1c-c596-424d-abbe-e5e1a7a65fdc"}],
+		"links":[{"href": "http://172.16.197.131:8776/v2/1d8837c5fcef4892951397df97661f97/volumes/242d3d14-2efd-4c63-9a6b-ef6bc8eed756", "rel": "self"},
+				{"href": "http://172.16.197.131:8776/1d8837c5fcef4892951397df97661f97/volumes/242d3d14-2efd-4c63-9a6b-ef6bc8eed756", "rel": "bookmark"}],
+		"metadata":{"readonly": "false", "attached_mode": "rw"},
+		"protected":false,
+		"status":"available",
+		"migrationStatus":null,
+		"user_id":"a971aa69-c61a-4a49-b392-b0e41609bc5d",
+		"encrypted":false,
+		"multiattach":false,
+		"created_at":"2014-09-29T14:44:35",
+		"description":"test volume 2",
+		"volume_type":"test_type",
+		"name":"test_volume2",
+		"source_volid":null,
+		"snapshot_id":null,
+		"size":2,
+
+		"availability_zone":"default_cluster",
+		"replication_status":null,
+		"consistencygroup_id":null
 	  }
    ]
 }`
