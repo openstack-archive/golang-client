@@ -12,12 +12,11 @@
 //    License for the specific language governing permissions and limitations
 //    under the License.
 
-package objectstorage_test
+package objectstorage
 
 import (
 	"errors"
-	"git.openstack.org/openstack/golang-client.git/objectstorage/v1"
-	"git.openstack.org/openstack/golang-client.git/openstack"
+	"git.openstack.org/openstack/golang-client/openstack"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -49,7 +48,7 @@ func TestGetAccountMeta(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	meta, err := objectstorage.GetAccountMeta(sess, apiServer.URL)
+	meta, err := GetAccountMeta(sess, apiServer.URL)
 	if err != nil {
 		t.Error(err)
 	}
@@ -80,7 +79,7 @@ func TestListContainers(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	myList, err := objectstorage.ListContainers(sess, 0, "", apiServer.URL)
+	myList, err := ListContainers(sess, 0, "", apiServer.URL)
 	if err != nil {
 		t.Error(err)
 	}
@@ -115,7 +114,7 @@ func TestListObjects(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	myList, err := objectstorage.ListObjects(
+	myList, err := ListObjects(
 		sess, 0, "", "", "", "", apiServer.URL+containerPrefix)
 	if err != nil {
 		t.Error(err)
@@ -137,7 +136,7 @@ func TestDeleteContainer(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	if err := objectstorage.DeleteContainer(sess, apiServer.URL+containerPrefix); err != nil {
+	if err := DeleteContainer(sess, apiServer.URL+containerPrefix); err != nil {
 		t.Error(err)
 	}
 }
@@ -157,7 +156,7 @@ func TestGetContainerMeta(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	meta, err := objectstorage.GetContainerMeta(sess, apiServer.URL+containerPrefix)
+	meta, err := GetContainerMeta(sess, apiServer.URL+containerPrefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -183,7 +182,7 @@ func TestSetContainerMeta(t *testing.T) {
 	sess := testGetSession()
 	headers := http.Header{}
 	headers.Add("X-Container-Meta-Fruit", "Apple")
-	if err := objectstorage.SetContainerMeta(
+	if err := SetContainerMeta(
 		sess, apiServer.URL+containerPrefix,
 		headers); err != nil {
 		t.Error(err)
@@ -205,7 +204,7 @@ func TestPutContainer(t *testing.T) {
 	headers := http.Header{}
 	headers.Add("X-TTL", "259200")
 	headers.Add("X-Log-Retention", "true")
-	if err := objectstorage.PutContainer(sess, apiServer.URL+containerPrefix,
+	if err := PutContainer(sess, apiServer.URL+containerPrefix,
 		headers); err != nil {
 		t.Error(err)
 	}
@@ -239,7 +238,7 @@ func TestPutObject(t *testing.T) {
 
 	sess := testGetSession()
 	headers := http.Header{}
-	if err = objectstorage.PutObject(sess, &fContent, apiServer.URL+objPrefix, headers); err != nil {
+	if err = PutObject(sess, &fContent, apiServer.URL+objPrefix, headers); err != nil {
 		t.Error(err)
 	}
 }
@@ -258,7 +257,7 @@ func TestCopyObject(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	if err := objectstorage.CopyObject(sess, apiServer.URL+objPrefix, destURL); err != nil {
+	if err := CopyObject(sess, apiServer.URL+objPrefix, destURL); err != nil {
 		t.Error(err)
 	}
 }
@@ -278,7 +277,7 @@ func TestGetObjectMeta(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	meta, err := objectstorage.GetObjectMeta(sess, apiServer.URL+objPrefix)
+	meta, err := GetObjectMeta(sess, apiServer.URL+objPrefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -302,7 +301,7 @@ func TestSetObjectMeta(t *testing.T) {
 	sess := testGetSession()
 	headers := http.Header{}
 	headers.Add("X-Object-Meta-Fruit", "Apple")
-	if err := objectstorage.SetObjectMeta(sess, apiServer.URL+objPrefix,
+	if err := SetObjectMeta(sess, apiServer.URL+objPrefix,
 		headers); err != nil {
 		t.Error(err)
 	}
@@ -329,7 +328,7 @@ func TestGetObject(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	hdr, body, err := objectstorage.GetObject(sess, apiServer.URL+objPrefix)
+	hdr, body, err := GetObject(sess, apiServer.URL+objPrefix)
 	if err != nil {
 		t.Error(err)
 	}
@@ -356,7 +355,7 @@ func TestDeleteObject(t *testing.T) {
 	defer apiServer.Close()
 
 	sess := testGetSession()
-	if err := objectstorage.DeleteObject(sess, apiServer.URL+objPrefix); err != nil {
+	if err := DeleteObject(sess, apiServer.URL+objPrefix); err != nil {
 		t.Error(err)
 	}
 }

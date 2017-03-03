@@ -21,7 +21,7 @@ Show and List methods can work.
 
 */
 
-package volume_v3
+package v3
 
 import (
 	"encoding/json"
@@ -30,8 +30,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"git.openstack.org/openstack/golang-client.git/openstack"
-	"git.openstack.org/openstack/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client/openstack"
+	"git.openstack.org/openstack/golang-client/util"
 )
 
 type Service struct {

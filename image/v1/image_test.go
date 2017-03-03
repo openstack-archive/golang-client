@@ -13,7 +13,7 @@
 //    under the License.
 
 // image.go
-package image_test
+package v1
 
 import (
 	"errors"
@@ -21,16 +21,15 @@ import (
 	"strings"
 	"testing"
 
-	"git.openstack.org/openstack/golang-client.git/image/v1"
-	"git.openstack.org/openstack/golang-client.git/openstack"
-	"git.openstack.org/openstack/golang-client.git/testUtil"
-	"git.openstack.org/openstack/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client/openstack"
+	"git.openstack.org/openstack/golang-client/testUtil"
+	"git.openstack.org/openstack/golang-client/util"
 )
 
 var tokn = "eaaafd18-0fed-4b3a-81b4-663c99ec1cbb"
 
 func TestListImages(t *testing.T) {
-	anon := func(imageService *image.Service) {
+	anon := func(imageService *Service) {
 		images, err := imageService.Images()
 		if err != nil {
 			t.Error(err)
@@ -39,7 +38,7 @@ func TestListImages(t *testing.T) {
 		if len(images) != 3 {
 			t.Error(errors.New("Incorrect number of images found"))
 		}
-		expectedImage := image.Response{
+		expectedImage := Response{
 			Name:            "Ubuntu Server 14.04.1 LTS (amd64 20140927) - Partner Image",
 			ContainerFormat: "bare",
 			DiskFormat:      "qcow2",
@@ -54,7 +53,7 @@ func TestListImages(t *testing.T) {
 }
 
 func TestListImageDetails(t *testing.T) {
-	anon := func(imageService *image.Service) {
+	anon := func(imageService *Service) {
 		images, err := imageService.ImagesDetail()
 		if err != nil {
 			t.Error(err)
@@ -67,7 +66,7 @@ func TestListImageDetails(t *testing.T) {
 		updatedAt, _ := util.NewDateTime(`"2014-09-29T15:33:37"`)
 		owner := "10014302369510"
 		virtualSize := int64(2525125)
-		expectedImageDetail := image.DetailResponse{
+		expectedImageDetail := DetailResponse{
 			Status:          "active",
 			Name:            "Ubuntu Server 12.04.5 LTS (amd64 20140927) - Partner Image",
 			Deleted:         false,
@@ -109,48 +108,48 @@ func TestListImageDetails(t *testing.T) {
 
 func TestNameFilterUrlProduced(t *testing.T) {
 	testImageQueryParameter(t, "images?name=CentOS+deprecated",
-		image.QueryParameters{Name: "CentOS deprecated"})
+		QueryParameters{Name: "CentOS deprecated"})
 }
 
 func TestStatusUrlProduced(t *testing.T) {
 	testImageQueryParameter(t, "images?status=active",
-		image.QueryParameters{Status: "active"})
+		QueryParameters{Status: "active"})
 }
 
 func TestMinMaxSizeUrlProduced(t *testing.T) {
 	testImageQueryParameter(t, "images?size_max=5300014&size_min=100158",
-		image.QueryParameters{MinSize: 100158, MaxSize: 5300014})
+		QueryParameters{MinSize: 100158, MaxSize: 5300014})
 }
 
 func TestMarkerLimitUrlProduced(t *testing.T) {
 	testImageQueryParameter(t, "images?limit=20&marker=bec3cab5-4722-40b9-a78a-3489218e22fe",
-		image.QueryParameters{Marker: "bec3cab5-4722-40b9-a78a-3489218e22fe", Limit: 20})
+		QueryParameters{Marker: "bec3cab5-4722-40b9-a78a-3489218e22fe", Limit: 20})
 }
 
 func TestContainerFormatFilterUrlProduced(t *testing.T) {
 	testImageQueryParameter(t, "images?container_format=bare",
-		image.QueryParameters{ContainerFormat: "bare"})
+		QueryParameters{ContainerFormat: "bare"})
 }
 
 func TestSortKeySortUrlProduced(t *testing.T) {
 	testImageQueryParameter(t, "images?sort_key=id",
-		image.QueryParameters{SortKey: "id"})
+		QueryParameters{SortKey: "id"})
 }
 
 func TestSortDirSortUrlProduced(t *testing.T) {
 	testImageQueryParameter(t, "images?sort_dir=asc",
-		image.QueryParameters{SortDirection: image.Asc})
+		QueryParameters{SortDirection: Asc})
 }
 
-func testImageQueryParameter(t *testing.T, uriEndsWith string, queryParameters image.QueryParameters) {
-	anon := func(imageService *image.Service) {
+func testImageQueryParameter(t *testing.T, uriEndsWith string, queryParameters QueryParameters) {
+	anon := func(imageService *Service) {
 		_, _ = imageService.QueryImages(&queryParameters)
 	}
 
 	testImageServiceAction(t, uriEndsWith, sampleImagesData, anon)
 }
 
-func testImageServiceAction(t *testing.T, uriEndsWith string, testData string, imageServiceAction func(*image.Service)) {
+func testImageServiceAction(t *testing.T, uriEndsWith string, testData string, imageServiceAction func(*Service)) {
 	anon := func(req *http.Request) {
 		reqURL := req.URL.String()
 		if !strings.HasSuffix(reqURL, uriEndsWith) {
@@ -168,7 +167,7 @@ func testImageServiceAction(t *testing.T, uriEndsWith string, testData string, i
 		},
 	}
 	sess, _ := openstack.NewSession(http.DefaultClient, auth, nil)
-	imageService := image.Service{
+	imageService := Service{
 		Session: *sess,
 		URL:     apiServer.URL,
 	}

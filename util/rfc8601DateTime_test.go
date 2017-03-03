@@ -12,20 +12,19 @@
 //    License for the specific language governing permissions and limitations
 //    under the License.
 
-package util_test
+package util
 
 import (
 	"encoding/json"
 	"testing"
 	"time"
 
-	"git.openstack.org/openstack/golang-client.git/testUtil"
-	"git.openstack.org/openstack/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client/testUtil"
 )
 
 var testValue = `{"created_at":"2014-09-29T14:44:31"}`
 var testTime, _ = time.Parse(`"2006-01-02T15:04:05"`, `"2014-09-29T14:44:31"`)
-var timeTestValue = timeTest{CreatedAt: util.RFC8601DateTime{testTime}}
+var timeTestValue = timeTest{CreatedAt: RFC8601DateTime{testTime}}
 
 func TestMarshalTimeTest(t *testing.T) {
 	bytes, _ := json.Marshal(timeTestValue)
@@ -55,5 +54,5 @@ func TestUnmarshalInvalidDateTimeFormatTimeTest(t *testing.T) {
 }
 
 type timeTest struct {
-	CreatedAt util.RFC8601DateTime `json:"created_at"`
+	CreatedAt RFC8601DateTime `json:"created_at"`
 }

@@ -20,7 +20,7 @@ Images and ImageDetails can be retrieved using the api.
 In addition more complex filtering and sort queries can by using the ImageQueryParameters.
 
 */
-package image
+package v1
 
 import (
 	"encoding/json"
@@ -30,8 +30,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"git.openstack.org/openstack/golang-client.git/openstack"
-	"git.openstack.org/openstack/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client/openstack"
+	"git.openstack.org/openstack/golang-client/util"
 )
 
 // Service is a client service that can make

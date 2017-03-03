@@ -12,7 +12,7 @@ BASE_DIR := $(shell basename $(PWD))
 GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
 PKG := $(shell awk  '/^package: / { print $$2 }' glide.yaml)
-DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(BASE_DIR).git
+DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(BASE_DIR)
 DEST := $(GOPATH)/src/$(PKG)
 
 # CTI targets

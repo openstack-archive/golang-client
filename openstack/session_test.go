@@ -13,7 +13,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package openstack_test
+package openstack
 
 import (
 	"encoding/json"
@@ -21,8 +21,7 @@ import (
 	"net/http"
 	"testing"
 
-	"git.openstack.org/openstack/golang-client.git/openstack"
-	"git.openstack.org/openstack/golang-client.git/testUtil"
+	"git.openstack.org/openstack/golang-client/testUtil"
 )
 
 type TestStruct struct {
@@ -41,7 +40,7 @@ func TestSessionGet(t *testing.T) {
 	expected := TestStruct{ID: "id1", Name: "Chris"}
 	actual := TestStruct{}
 
-	s, _ := openstack.NewSession(nil, nil, nil)
+	s, _ := NewSession(nil, nil, nil)
 	var headers http.Header = http.Header{}
 	headers.Set("X-Auth-Token", tokn)
 	headers.Set("Accept", "application/json")

@@ -12,7 +12,7 @@
 //    License for the specific language governing permissions and limitations
 //    under the License.
 
-package util_test
+package util
 
 import (
 	"bytes"
@@ -23,8 +23,7 @@ import (
 	"strconv"
 	"testing"
 
-	"git.openstack.org/openstack/golang-client.git/testUtil"
-	"git.openstack.org/openstack/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client/testUtil"
 )
 
 var token = "2350971-5716-8165"
@@ -33,7 +32,7 @@ func TestDelete(t *testing.T) {
 	var apiServer = testUtil.CreateDeleteTestRequestServer(t, token, "/other")
 	defer apiServer.Close()
 
-	err := util.Delete(apiServer.URL+"/other", token, *http.DefaultClient)
+	err := Delete(apiServer.URL+"/other", token, *http.DefaultClient)
 	testUtil.IsNil(t, err)
 }
 
@@ -43,7 +42,7 @@ func TestPostJsonWithValidResponse(t *testing.T) {
 	actual := TestStruct{}
 	ti := TestStruct{ID: "id1", Name: "name"}
 
-	err := util.PostJSON(apiServer.URL, token, *http.DefaultClient, ti, &actual)
+	err := PostJSON(apiServer.URL, token, *http.DefaultClient, ti, &actual)
 	testUtil.IsNil(t, err)
 	expected := TestStruct{ID: "id1", Name: "Chris"}
 
@@ -60,13 +59,13 @@ func TestCallAPI(t *testing.T) {
 			w.WriteHeader(200) //ok
 		}))
 	zeroByte := &([]byte{})
-	if _, err := util.CallAPI("HEAD", apiServer.URL, zeroByte, "X-Auth-Token", tokn); err != nil {
+	if _, err := CallAPI("HEAD", apiServer.URL, zeroByte, "X-Auth-Token", tokn); err != nil {
 		t.Error(err)
 	}
-	if _, err := util.CallAPI("DELETE", apiServer.URL, zeroByte, "X-Auth-Token", tokn); err != nil {
+	if _, err := CallAPI("DELETE", apiServer.URL, zeroByte, "X-Auth-Token", tokn); err != nil {
 		t.Error(err)
 	}
-	if _, err := util.CallAPI("POST", apiServer.URL, zeroByte, "X-Auth-Token", tokn); err != nil {
+	if _, err := CallAPI("POST", apiServer.URL, zeroByte, "X-Auth-Token", tokn); err != nil {
 		t.Error(err)
 	}
 }
@@ -90,7 +89,7 @@ func TestCallAPIGetContent(t *testing.T) {
 			w.Write(body)
 		}))
 	var resp *http.Response
-	if resp, err = util.CallAPI("GET", apiServer.URL, &fContent, "X-Auth-Token", tokn,
+	if resp, err = CallAPI("GET", apiServer.URL, &fContent, "X-Auth-Token", tokn,
 		"Etag", "md5hash-blahblah"); err != nil {
 		t.Error(err)
 	}
@@ -129,7 +128,7 @@ func TestCallAPIPutContent(t *testing.T) {
 			}
 			w.WriteHeader(200)
 		}))
-	if _, err = util.CallAPI("PUT", apiServer.URL, &fContent, "X-Auth-Token", tokn); err != nil {
+	if _, err = CallAPI("PUT", apiServer.URL, &fContent, "X-Auth-Token", tokn); err != nil {
 		t.Error(err)
 	}
 }
