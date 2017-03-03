@@ -4,7 +4,7 @@
 
 #REPO_VERSION?=$(shell git describe --tags)
 
-GIT_HOST = git.openstack.org
+GIT_HOST = openstack.org
 
 PWD := $(shell pwd)
 BASE_DIR := $(shell basename $(PWD))
@@ -12,7 +12,6 @@ BASE_DIR := $(shell basename $(PWD))
 GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
 PKG := $(shell awk  '/^package: / { print $$2 }' glide.yaml)
-DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(BASE_DIR).git
 DEST := $(GOPATH)/src/$(PKG)
 
 # CTI targets

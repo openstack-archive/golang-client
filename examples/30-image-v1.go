@@ -21,8 +21,8 @@ import (
 	"net/http"
 	"time"
 
-	"git.openstack.org/openstack/golang-client.git/image/v1"
-	"git.openstack.org/openstack/golang-client.git/openstack"
+	"openstack.org/golang-client/image/v1"
+	"openstack.org/golang-client/openstack"
 )
 
 // Image examples.

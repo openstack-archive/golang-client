@@ -1,3 +1,3 @@
-package: git.openstack.org/openstack/golang-client.git
+package: openstack.org/golang-client
 import:
 - package: github.com/fullsailor/pkcs7

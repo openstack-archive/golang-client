@@ -24,7 +24,7 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"git.openstack.org/openstack/golang-client.git/openstack"
+	"openstack.org/golang-client/openstack"
 )
 
 // testconfig contains the user information needed by the acceptance and

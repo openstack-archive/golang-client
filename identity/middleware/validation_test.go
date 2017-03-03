@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"git.openstack.org/openstack/golang-client.git/openstack"
+	"openstack.org/golang-client/openstack"
 )
 
 const (
