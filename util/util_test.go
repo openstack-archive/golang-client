@@ -23,8 +23,8 @@ import (
 	"strconv"
 	"testing"
 
-	"git.openstack.org/openstack/golang-client.git/testUtil"
-	"git.openstack.org/openstack/golang-client.git/util"
+	"git.openstack.org/openstack/golang-client/testUtil"
+	"git.openstack.org/openstack/golang-client/util"
 )
 
 var token = "2350971-5716-8165"

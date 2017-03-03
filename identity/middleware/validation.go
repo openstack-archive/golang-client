@@ -30,7 +30,7 @@ import (
 	"strings"
 	"time"
 
-	"git.openstack.org/openstack/golang-client.git/openstack"
+	"git.openstack.org/openstack/golang-client/openstack"
 	"github.com/fullsailor/pkcs7"
 )
 
