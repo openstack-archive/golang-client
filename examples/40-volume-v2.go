@@ -21,8 +21,8 @@ import (
 	"net/http"
 	"time"
 
-	"git.openstack.org/openstack/golang-client.git/openstack"
-	"git.openstack.org/openstack/golang-client.git/volume/v2"
+	"git.openstack.org/openstack/golang-client/openstack"
+	"git.openstack.org/openstack/golang-client/volume/v2"
 )
 
 // Volume examples.

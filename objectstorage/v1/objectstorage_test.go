@@ -16,8 +16,8 @@ package objectstorage_test
 
 import (
 	"errors"
-	"git.openstack.org/openstack/golang-client.git/objectstorage/v1"
-	"git.openstack.org/openstack/golang-client.git/openstack"
+	"git.openstack.org/openstack/golang-client/objectstorage/v1"
+	"git.openstack.org/openstack/golang-client/openstack"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
