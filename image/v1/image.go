@@ -20,7 +20,7 @@ Images and ImageDetails can be retrieved using the api.
 In addition more complex filtering and sort queries can by using the ImageQueryParameters.
 
 */
-package image
+package v1
 
 import (
 	"encoding/json"

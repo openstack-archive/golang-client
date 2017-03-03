@@ -20,7 +20,7 @@ Volumes and VolumeDetails can be retrieved using the api.
 In addition more complex filtering and sort queries can by using the VolumeQueryParameters.
 
 */
-package volume_v2
+package v2
 
 import (
 	"encoding/json"
