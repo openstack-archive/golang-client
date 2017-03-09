@@ -20,7 +20,12 @@ DEST := $(GOPATH)/src/$(PKG)
 depend: work
 	cd $(DEST) && glide install
 
-test: depend
+depend-update: work
+	cd $(DEST) && glide update
+
+test: unit functional
+
+unit: depend
 	cd $(DEST) && go test -tags=unit ./...
 
 functional:
@@ -38,7 +43,10 @@ cover:
 docs:
 	@echo "$@ not yet implemented"
 
-relnotes:
+godoc:
+	@echo "$@ not yet implemented"
+
+releasenotes:
 	@echo "Reno not yet implemented for this repo"
 
 translation:
