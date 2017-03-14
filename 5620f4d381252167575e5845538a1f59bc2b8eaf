@@ -1,0 +1,9 @@
+Code-Review+1: Davanum Srinivas (dims) <davanum@gmail.com>
+Code-Review+2: Dean Troyer <dtroyer@gmail.com>
+Workflow+1: Dean Troyer <dtroyer@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Tue, 14 Mar 2017 16:18:55 +0000
+Reviewed-on: https://review.openstack.org/444499
+Project: openstack/golang-client
+Branch: refs/heads/master
