@@ -5,6 +5,7 @@
 #REPO_VERSION?=$(shell git describe --tags)
 
 GIT_HOST = git.openstack.org
+SHELL := /bin/bash
 
 PWD := $(shell pwd)
 BASE_DIR := $(shell basename $(PWD))
@@ -12,26 +13,52 @@ BASE_DIR := $(shell basename $(PWD))
 GOPATH_DEFAULT := $(PWD)/.go
 export GOPATH ?= $(GOPATH_DEFAULT)
 PKG := $(shell awk  '/^package: / { print $$2 }' glide.yaml)
-DEST := $(GOPATH)/src/$(GIT_HOST)/openstack/$(BASE_DIR)
 DEST := $(GOPATH)/src/$(PKG)
+
+GOFLAGS :=
+TAGS :=
+LDFLAGS :=
+
+# Default target
+.PHONY: all
+all: build
 
 # CTI targets
 
+.PHONY: depend
 depend: work
 	cd $(DEST) && glide install
 
+.PHONY: depend-update
 depend-update: work
 	cd $(DEST) && glide update
 
-test: unit functional
+.PHONY: build
+build: depend
+	cd $(DEST) && go build $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)'' ./...
 
-unit: depend
-	cd $(DEST) && go test -tags=unit ./...
+.PHONY: install
+install: depend
+	cd $(DEST) && go install $(GOFLAGS) -tags '$(TAGS)' -ldflags '$(LDFLAGS)'' ./...
 
-functional:
-	@echo "$@ not yet implemented"
+.PHONY: test
+test: test-unit
 
+.PHONY: test-unit
+test-unit: depend
+test-unit: TAGS += unit
+test-unit: test-flags
+
+.PHONY: test-flags
+test-flags:
+	cd $(DEST) && go test $(GOFLAGS) -tags '$(TAGS)' ./...
+
+.PHONY: fmt
 fmt: work
+	cd $(DEST) && ( needswork="$(shell gofmt -l . | tee >&2)"; [ -n "$$needswork" ] )
+
+.PHONY: fmtfix
+fmtfix: work
 	cd $(DEST) && go fmt ./...
 
 lint:
