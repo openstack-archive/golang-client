@@ -23,11 +23,12 @@ import (
 
 	"git.openstack.org/openstack/golang-client/image/v1"
 	"git.openstack.org/openstack/golang-client/openstack"
+	"git.openstack.org/openstack/golang-client/examples/setup"
 )
 
 // Image examples.
 func main() {
-	config := getConfig()
+	config := setup.GetConfig()
 
 	// Authenticate with a username, password, tenant id.
 	creds := openstack.AuthOpts{
@@ -58,7 +59,7 @@ func main() {
 		panic(panicString)
 	}
 
-	imageService := image.Service{
+	imageService := v1.Service{
 		Session: *sess,
 		Client:  *http.DefaultClient,
 		URL:     url + "/v1", // We're forcing Image v1 for now

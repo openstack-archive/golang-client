@@ -23,11 +23,12 @@ import (
 
 	"git.openstack.org/openstack/golang-client/openstack"
 	"git.openstack.org/openstack/golang-client/volume/v2"
+	"git.openstack.org/openstack/golang-client/examples/setup"
 )
 
 // Volume examples.
 func main() {
-	config := getConfig()
+	config := setup.GetConfig()
 
 	// Authenticate with a username, password, tenant id.
 	creds := openstack.AuthOpts{
@@ -58,7 +59,7 @@ func main() {
 		panic(panicString)
 	}
 
-	volumeService := volume.Service{
+	volumeService := v2.Service{
 		Session: *sess,
 		Client:  *http.DefaultClient,
 		URL:     url, // We're forcing Volume v2 for now

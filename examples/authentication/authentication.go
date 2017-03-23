@@ -22,11 +22,12 @@ import (
 	"time"
 
 	"git.openstack.org/openstack/golang-client/openstack"
+	"git.openstack.org/openstack/golang-client/examples/setup"
 )
 
 // Authentication examples.
 func main() {
-	config := getConfig()
+	config := setup.GetConfig()
 
 	// Authenticate with just a username and password. The returned token is
 	// unscoped to a tenant.

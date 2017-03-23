@@ -22,9 +22,9 @@ echo "Executing the examples in: $DIR"
 cd $DIR
 
 # Run all the tests.
-for T in $(ls -1 [0-9][0-9]*.go); do
-	if ! [ -x $T ]; then
-		CMD="go run $T setup.go"
+for T in $(find . -type d \! -path \*setup -name [a-z]\*); do
+	if [ -d $T ]; then
+		CMD="go run $T/$T.go"
 		echo "$CMD ..."
 		if ! $CMD ; then
 			echo "Error executing example $T."
