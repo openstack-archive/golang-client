@@ -1,0 +1,8 @@
+Code-Review+2: Dean Troyer <dtroyer@gmail.com>
+Workflow+1: Dean Troyer <dtroyer@gmail.com>
+Verified+2: Jenkins
+Submitted-by: Jenkins
+Submitted-at: Fri, 24 Mar 2017 16:41:46 +0000
+Reviewed-on: https://review.openstack.org/449353
+Project: openstack/golang-client
+Branch: refs/heads/master
