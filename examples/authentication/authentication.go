@@ -21,8 +21,8 @@ import (
 	// "git.openstack.org/openstack/golang-client/identity/v2"
 	"time"
 
-	"git.openstack.org/openstack/golang-client/openstack"
 	"git.openstack.org/openstack/golang-client/examples/setup"
+	"git.openstack.org/openstack/golang-client/openstack"
 )
 
 // Authentication examples.
