@@ -64,3 +64,7 @@ func (s AuthToken) GetEndpoint(serviceType string, regionName string) (string, e
 func (s AuthToken) GetProject() string {
 	return s.Access.Token.Project.Name
 }
+
+func (s AuthToken) GetProjectId() string {
+	return s.Access.Token.Project.ID
+}

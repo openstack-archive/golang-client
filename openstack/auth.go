@@ -26,6 +26,7 @@ type AuthRef interface {
 	GetExpiration() time.Time
 	GetEndpoint(string, string) (string, error)
 	GetProject() string
+	GetProjectId() string
 }
 
 // AuthOpts is the set of credentials used to authenticate to OpenStack
